@@ -15,27 +15,27 @@ WiFiManager wm;
 void setup() {
   debugSerial.begin(9600);
   dbgln();
-  dbgln(F("[config] load"))
+  dbgln("[config] load")
   prefs.begin("modbusRtuGw");
   if (prefs.getBytesLength("settings") != sizeof(config_type))
   {
-    dbgln(F("[config] no config found - using default"));
+    dbgln("[config] no config found - using default");
     config = default_config;
     prefs.putBytes("settings", &config, sizeof(config_type));
   }
   else
   {
-    dbgln(F("[config] config found - loading"));
+    dbgln("[config] config found - loading");
     prefs.getBytes("settings", &config, sizeof(config_type));
   }
-  dbgln(F("[wifi] start"));
+  dbgln("[wifi] start");
   WiFi.mode(WIFI_STA);
   wm.autoConnect();
-  dbgln(F("[wifi] finished"));
+  dbgln("[wifi] finished");
   setupPages(&webServer);
   AsyncElegantOTA.begin(&webServer);
   webServer.begin();
-  dbgln(F("[setup] finished"));
+  dbgln("[setup] finished");
 }
 
 void loop() {
