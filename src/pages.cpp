@@ -5,7 +5,7 @@ void setupPages(AsyncWebServer *server){
     dbgln("[webserver] request to /");
     AsyncResponseStream *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Main");
-    response->print("ModbusRtuGateway");
+    response->print("ESP32 Modbus Gateway");
     sendResponseTrailer(response);
     request->send(response);
   });
@@ -31,7 +31,7 @@ void sendResponseHeader(AsyncResponseStream *response, const String &title){
       "<head>"
       "<meta charset='utf-8'>"
       "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1,user-scalable=no\"/>");
-    response->printf("<title>Modbus RTU/TCP Gateway - %s</title>", title);
+    response->printf("<title>ESP32 Modbus Gateway - %s</title>", title);
     response->print("<link rel=\"stylesheet\" href=\"style.css\">"
       "</head>"
       "<body>");
