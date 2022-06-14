@@ -2,7 +2,7 @@
     #define CONFIG_H
     #include <Arduino.h>
     #define debugSerial Serial
-    #define modbusSerial Serial3
+    #define modbusSerial Serial2
     #define DEBUG
 
     typedef struct {
@@ -15,7 +15,7 @@
     const config_type default_config = {
         502,
         false,
-        9600,
+        19200,
         SERIAL_8E1
     };
     #ifdef DEBUG

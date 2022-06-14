@@ -4,12 +4,17 @@
 #include <ESPAsyncWebServer.h>
 #include <AsyncElegantOTA.h>
 #include <Preferences.h>
+#include <Logging.h>
+#include <ModbusBridgeWiFi.h>
+#include <ModbusClientRTU.h>
 #include "config.h"
 #include "pages.h"
 
 AsyncWebServer webServer(80);
 config_type config;
 Preferences prefs;
+ModbusClientRTU MBclient(modbusSerial);
+ModbusBridgeWiFi MBbridge;
 WiFiManager wm;
 
 void setup() {
@@ -35,6 +40,13 @@ void setup() {
   setupPages(&webServer);
   AsyncElegantOTA.begin(&webServer);
   webServer.begin();
+  dbgln("[modbus] start");
+  modbusSerial.begin(config.baud, config.serialConfig);
+  MBclient.setTimeout(1000);
+  MBclient.begin();
+  MBbridge.attachServer(1, 1, ANY_FUNCTION_CODE, &MBclient);
+  MBbridge.start(502, 10, 10000);
+  dbgln("[modbus] finished");
   dbgln("[setup] finished");
 }
 
