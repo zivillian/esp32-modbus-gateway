@@ -37,9 +37,6 @@ void setup() {
   WiFi.mode(WIFI_STA);
   wm.autoConnect();
   dbgln("[wifi] finished");
-  setupPages(&webServer);
-  AsyncElegantOTA.begin(&webServer);
-  webServer.begin();
   dbgln("[modbus] start");
   modbusSerial.begin(config.baud, config.serialConfig);
   MBclient.setTimeout(1000);
@@ -50,6 +47,9 @@ void setup() {
   }  
   MBbridge.start(502, 10, 10000);
   dbgln("[modbus] finished");
+  setupPages(&webServer, &MBclient, &MBbridge);
+  AsyncElegantOTA.begin(&webServer);
+  webServer.begin();
   dbgln("[setup] finished");
 }
 

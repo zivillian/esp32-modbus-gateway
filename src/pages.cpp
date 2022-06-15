@@ -1,11 +1,22 @@
 #include "pages.h"
 
-void setupPages(AsyncWebServer *server){
+void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *bridge){
   server->on("/", HTTP_GET, [](AsyncWebServerRequest *request){
     dbgln("[webserver] request to /");
     AsyncResponseStream *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Main");
     response->print("ESP32 Modbus Gateway");
+    sendResponseTrailer(response);
+    request->send(response);
+  });
+  server->on("/status", HTTP_GET, [rtu, bridge](AsyncWebServerRequest *request){
+    dbgln("[webserver] request to /status");
+    AsyncResponseStream *response = request->beginResponseStream("text/html");
+    sendResponseHeader(response, "Status");
+    response->printf("RTU Messages: %d<br/>", rtu->getMessageCount());
+    response->printf("RTU Pending Messages: %d<br/>", rtu->pendingRequests());
+    response->printf("Bridge Message: %d</br>", bridge->getMessageCount());
+    response->printf("Bridge Clients: %d</br>", bridge->activeClients());
     sendResponseTrailer(response);
     request->send(response);
   });
