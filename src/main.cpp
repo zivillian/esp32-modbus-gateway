@@ -44,7 +44,10 @@ void setup() {
   modbusSerial.begin(config.baud, config.serialConfig);
   MBclient.setTimeout(1000);
   MBclient.begin();
-  MBbridge.attachServer(1, 1, ANY_FUNCTION_CODE, &MBclient);
+  for (uint8_t i = 1; i < 248; i++)
+  {
+    MBbridge.attachServer(i, i, ANY_FUNCTION_CODE, &MBclient);
+  }  
   MBbridge.start(502, 10, 10000);
   dbgln("[modbus] finished");
   dbgln("[setup] finished");
