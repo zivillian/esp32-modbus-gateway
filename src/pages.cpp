@@ -7,6 +7,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendResponseHeader(response, "Main");
     sendButton(response, "Status", "status");
     sendButton(response, "Config", "config");
+    sendButton(response, "Debug", "debug");
     sendButton(response, "Reboot", "reboot", "r");
     sendResponseTrailer(response);
     request->send(response);
@@ -54,7 +55,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
           "<label for=\"port\">TCP Port</label>"
         "</td>"
         "<td>");
-    response->printf("<input type=\"text\" id=\"port\" name=\"port\" value=\"%d\">", config->getTcpPort());
+    response->printf("<input type=\"number\" min=\"1\" max=\"65535\" id=\"port\" name=\"port\" value=\"%d\">", config->getTcpPort());
     response->print("</td>"
         "</tr>"
         "<tr>"
@@ -70,7 +71,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
             "<label for=\"data\">Modbus data bits</label>"
           "</td>"
           "<td>");
-    response->printf("<input type=\"text\" id=\"data\" name=\"data\" value=\"%d\">", config->getDataBits());
+    response->printf("<input type=\"number\" min=\"5\" max=\"8\" id=\"data\" name=\"data\" value=\"%d\">", config->getDataBits());
     response->print("</td>"
         "</tr>"
         "<tr>"
@@ -141,6 +142,49 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     }
     request->redirect("/");    
   });
+  server->on("/debug", HTTP_GET, [](AsyncWebServerRequest *request){
+    dbgln("[webserver] GET /debug");
+    auto *response = request->beginResponseStream("text/html");
+    sendResponseHeader(response, "Debug");
+    sendDebugForm(response, "1", "1", "3");
+    sendButton(response, "Back", "/");
+    sendResponseTrailer(response);
+    request->send(response);
+  });
+  server->on("/debug", HTTP_POST, [rtu](AsyncWebServerRequest *request){
+    dbgln("[webserver] POST /debug");
+    String slaveId = "1";
+    if (request->hasParam("slave", true)){
+      slaveId = request->getParam("slave", true)->value();
+    }
+    String reg = "1";
+    if (request->hasParam("reg", true)){
+      reg = request->getParam("reg", true)->value();
+    }
+    String func = "3";
+    if (request->hasParam("func", true)){
+      func = request->getParam("func", true)->value();
+    }
+    ModbusMessage answer = rtu->syncRequest(0xdeadbeef, slaveId.toInt(), func.toInt(), reg.toInt(), 1);
+    auto *response = request->beginResponseStream("text/html");
+    sendResponseHeader(response, "Debug");
+    if (answer.getError() == SUCCESS){
+      auto count = answer[2];
+      response->print("<span >Answer: 0x");
+      for (size_t i = 0; i < count; i++)
+      {
+        response->printf("%02x", answer[i + 3]);
+      }      
+      response->print("</span>");
+    }
+    else{
+      response->printf("<span class=\"e\">Error: %#02x</span>", answer.getError());
+    }
+    sendDebugForm(response, slaveId, reg, func);
+    sendButton(response, "Back", "/");
+    sendResponseTrailer(response);
+    request->send(response);
+  });
   server->on("/favicon.ico", [](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /favicon.ico");
     request->send(204);//TODO add favicon
@@ -185,6 +229,9 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     "input{"
       "width:100%;"
     "}"
+    ".e{"
+      "color:red;"
+    "}"
     );
     response->addHeader("ETag", __DATE__ "" __TIME__);
     request->send(response);
@@ -228,4 +275,48 @@ void sendTableRow(AsyncResponseStream *response, const char *name, uint32_t valu
         "<td>%s:</td>"
         "<td>%d</td>"
       "</tr>", name, value);
+}
+
+void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, String function){
+    response->print("<form method=\"post\">");
+    response->print("<table>"
+      "<tr>"
+        "<td>"
+          "<label for=\"slave\">Slave ID</label>"
+        "</td>"
+        "<td>");
+    response->printf("<input type=\"number\" min=\"0\" max=\"247\" id=\"slave\" name=\"slave\" value=\"%s\">", slaveId);
+    response->print("</td>"
+        "</tr>"
+        "<tr>"
+          "<td>"
+            "<label for=\"reg\">Register</label>"
+          "</td>"
+          "<td>");
+    response->printf("<input type=\"number\" min=\"0\" max=\"65535\" id=\"reg\" name=\"reg\" value=\"%s\">", reg);
+    response->print("</td>"
+        "</tr>"
+        "<tr>"
+          "<td>"
+            "<label for=\"func\">Function</label>"
+          "</td>"
+          "<td>");
+    response->printf("<select id=\"func\" name=\"func\" data-value=\"%s\">", function);
+    response->print(
+              "<option value=\"3\">03 Read Holding Register</option>"
+              "<option value=\"4\">04 Read Input Register</option>"
+            "</select>"
+          "</td>"
+        "</tr>"
+        "</table>");
+    response->print("<button class=\"r\">Send</button>"
+      "</form>"
+      "<p></p>");
+    response->print("<script>"
+      "(function(){"
+        "var s = document.querySelectorAll('select[data-value]');"
+        "for(d of s){"
+          "d.querySelector(`option[value='${d.dataset.value}']`).selected=true"
+      "}})();"
+      "</script>");
 }
