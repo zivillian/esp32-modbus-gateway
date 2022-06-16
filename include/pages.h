@@ -6,7 +6,7 @@
     #include <ModbusClientRTU.h>
     #include "config.h"
 
-    void setupPages(AsyncWebServer* server, ModbusClientRTU *rtu, ModbusBridgeWiFi *bridge);
+    void setupPages(AsyncWebServer* server, ModbusClientRTU *rtu, ModbusBridgeWiFi *bridge, Config *config);
     void sendResponseHeader(AsyncResponseStream *response, const char *title);
     void sendResponseTrailer(AsyncResponseStream *response);
     void sendButton(AsyncResponseStream *response, const char *title, const char *action, const char *css = "");

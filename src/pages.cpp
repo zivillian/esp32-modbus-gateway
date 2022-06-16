@@ -1,6 +1,6 @@
 #include "pages.h"
 
-void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *bridge){
+void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *bridge, Config *config){
   server->on("/", HTTP_GET, [](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /");
     auto *response = request->beginResponseStream("text/html");
@@ -43,6 +43,104 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     ESP.restart();
     dbgln("[webserver] rebooted...")
   });
+  server->on("/config", HTTP_GET, [config](AsyncWebServerRequest *request){
+    dbgln("[webserver] GET /config");
+    auto *response = request->beginResponseStream("text/html");
+    sendResponseHeader(response, "Config");
+    response->print("<form method=\"post\">");
+    response->print("<table>"
+      "<tr>"
+        "<td>"
+          "<label for=\"port\">TCP Port</label>"
+        "</td>"
+        "<td>");
+    response->printf("<input type=\"text\" id=\"port\" name=\"port\" value=\"%d\">", config->getTcpPort());
+    response->print("</td>"
+        "</tr>"
+        "<tr>"
+          "<td>"
+            "<label for=\"baud\">Modbus baud rate</label>"
+          "</td>"
+          "<td>");
+    response->printf("<input type=\"number\" min=\"0\" id=\"baud\" name=\"baud\" value=\"%d\">", config->getBaud());
+    response->print("</td>"
+        "</tr>"
+        "<tr>"
+          "<td>"
+            "<label for=\"data\">Modbus data bits</label>"
+          "</td>"
+          "<td>");
+    response->printf("<input type=\"text\" id=\"data\" name=\"data\" value=\"%d\">", config->getDataBits());
+    response->print("</td>"
+        "</tr>"
+        "<tr>"
+          "<td>"
+            "<label for=\"parity\">Modbus parity</label>"
+          "</td>"
+          "<td>");
+    response->printf("<select id=\"parity\" name=\"parity\" data-value=\"%d\">", config->getParity());
+    response->print("<option value=\"0\">None</option>"
+              "<option value=\"2\">Even</option>"
+              "<option value=\"3\">Odd</option>"
+            "</select>"
+          "</td>"
+        "</tr>"
+        "<tr>"
+          "<td>"
+            "<label for=\"stop\">Modbus stop bits</label>"
+          "</td>"
+          "<td>");
+    response->printf("<select id=\"stop\" name=\"stop\" data-value=\"%d\">", config->getStopBits());
+    response->print("<option value=\"1\">1 bit</option>"
+              "<option value=\"2\">1.5 bits</option>"
+              "<option value=\"3\">2 bits</option>"
+            "</select>"
+          "</td>"
+        "</tr>"
+        "</table>");
+    response->print("<button class=\"r\">Save</button>"
+      "</form>"
+      "<p></p>");
+    sendButton(response, "Back", "/");
+    response->print("<script>"
+      "(function(){"
+        "var s = document.querySelectorAll('select[data-value]');"
+        "for(d of s){"
+          "d.querySelector(`option[value='${d.dataset.value}']`).selected=true"
+      "}})();"
+      "</script>");
+    sendResponseTrailer(response);
+    request->send(response);
+  });
+  server->on("/config", HTTP_POST, [config](AsyncWebServerRequest *request){
+    dbgln("[webserver] POST /config");
+    if (request->hasParam("port", true)){
+      auto port = request->getParam("port", true)->value().toInt();
+      config->setTcpPort(port);
+      dbgln("[webserver] saved port");
+    }
+    if (request->hasParam("baud", true)){
+      auto baud = request->getParam("baud", true)->value().toInt();
+      config->setBaud(baud);
+      dbgln("[webserver] saved baud");
+    }
+    if (request->hasParam("data", true)){
+      auto data = request->getParam("data", true)->value().toInt();
+      config->setDataBits(data);
+      dbgln("[webserver] saved data");
+    }
+    if (request->hasParam("parity", true)){
+      auto parity = request->getParam("parity", true)->value().toInt();
+      config->setParity(parity);
+      dbgln("[webserver] saved parity");
+    }
+    if (request->hasParam("stop", true)){
+      auto stop = request->getParam("stop", true)->value().toInt();
+      config->setStopBits(stop);
+      dbgln("[webserver] saved stop");
+    }
+    request->redirect("/");    
+  });
   server->on("/favicon.ico", [](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /favicon.ico");
     request->send(204);//TODO add favicon
@@ -82,6 +180,10 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     "}"
     "table{"
       "text-align:left;"
+      "width:100%;"
+    "}"
+    "input{"
+      "width:100%;"
     "}"
     );
     response->addHeader("ETag", __DATE__ "" __TIME__);
