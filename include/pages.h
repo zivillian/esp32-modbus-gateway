@@ -4,6 +4,7 @@
     #include <ESPAsyncWebServer.h>
     #include <ModbusBridgeWiFi.h>
     #include <ModbusClientRTU.h>
+    #include <Update.h>
     #include "config.h"
 
     void setupPages(AsyncWebServer* server, ModbusClientRTU *rtu, ModbusBridgeWiFi *bridge, Config *config);

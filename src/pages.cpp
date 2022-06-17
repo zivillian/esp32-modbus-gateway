@@ -8,6 +8,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendButton(response, "Status", "status");
     sendButton(response, "Config", "config");
     sendButton(response, "Debug", "debug");
+    sendButton(response, "Firmware update", "update");
     sendButton(response, "Reboot", "reboot", "r");
     sendResponseTrailer(response);
     request->send(response);
@@ -184,6 +185,56 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendButton(response, "Back", "/");
     sendResponseTrailer(response);
     request->send(response);
+  });
+  server->on("/update", HTTP_GET, [](AsyncWebServerRequest *request){
+    dbgln("[webserver] GET /update");
+    auto *response = request->beginResponseStream("text/html");
+    sendResponseHeader(response, "Firmware Update");
+    response->print("<form method=\"post\" enctype=\"multipart/form-data\">"
+      "<input type=\"file\" name=\"file\" id=\"file\"/>"
+      "<p></p>"
+      "<button class=\"r\">Upload</button>"
+      "</form>"
+      "<p></p>");
+    sendButton(response, "Back", "/");
+    sendResponseTrailer(response);
+    request->send(response);
+  });
+  server->on("/update", HTTP_POST, [](AsyncWebServerRequest *request){
+    dbgln("[webserver] OTA finished");
+    if (Update.hasError()){
+      auto *response = request->beginResponse(500, "text/plain", "Ota failed");
+      response->addHeader("Connection", "close");
+      request->send(response);
+    }
+    else{
+      request->redirect("/");
+    }
+    ESP.restart();
+  }, [&](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
+    dbg("[webserver] OTA progress ");dbgln(index);
+    if (!index) {
+      //TODO add MD5 Checksum and Update.setMD5
+      int cmd = (filename == "filesystem") ? U_SPIFFS : U_FLASH;
+      if (!Update.begin(UPDATE_SIZE_UNKNOWN, cmd)) { // Start with max available size
+        Update.printError(Serial);
+        return request->send(400, "text/plain", "OTA could not begin");
+      }
+    }
+    // Write chunked data to the free sketch space
+    if(len){
+      if (Update.write(data, len) != len) {
+        return request->send(400, "text/plain", "OTA could not write data");
+      }
+    }
+    if (final) { // if the final flag is set then this is the last frame of data
+      if (!Update.end(true)) { //true to set the size to the current progress
+        Update.printError(Serial);
+        return request->send(400, "text/plain", "Could not end OTA");
+      }
+    }else{
+      return;
+    }
   });
   server->on("/favicon.ico", [](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /favicon.ico");

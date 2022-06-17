@@ -2,7 +2,6 @@
 #include <AsyncTCP.h>
 #include <WiFiManager.h>
 #include <ESPAsyncWebServer.h>
-#include <AsyncElegantOTA.h>
 #include <Preferences.h>
 #include <Logging.h>
 #include <ModbusBridgeWiFi.h>
@@ -38,7 +37,6 @@ void setup() {
   MBbridge.start(config.getTcpPort(), 10, 10000);
   dbgln("[modbus] finished");
   setupPages(&webServer, &MBclient, &MBbridge, &config);
-  AsyncElegantOTA.begin(&webServer);
   webServer.begin();
   dbgln("[setup] finished");
 }
