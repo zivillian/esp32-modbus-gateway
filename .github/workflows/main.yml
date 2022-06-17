@@ -30,7 +30,7 @@ jobs:
     - name: Run PlatformIO
       run: pio run -e esp32dev
     - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: image
-          path: .pio/build/esp32dev/firmware.bin
+      uses: actions/upload-artifact@v3
+      with:
+        name: image
+        path: .pio/build/esp32dev/firmware.bin
