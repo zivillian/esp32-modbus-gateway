@@ -28,7 +28,7 @@ void setup() {
   wm.autoConnect();
   dbgln("[wifi] finished");
   dbgln("[modbus] start");
-  modbusSerial.begin(config.getBaud(), config.getSerialConfig());
+  modbusSerial.begin(config.getModbusBaudRate(), config.getModbusSerialConfig());
   MBclient.setTimeout(1000);
   MBclient.begin();
   for (uint8_t i = 1; i < 248; i++)

@@ -10,22 +10,22 @@
         private:
             Preferences *_prefs;
             int16_t _tcpPort;
-            unsigned long _baud;
-            uint32_t _serialConfig;
+            unsigned long _modbusBaudRate;
+            uint32_t _modbusSerialConfig;
         public:
             Config();
             void begin(Preferences *prefs);
             uint16_t getTcpPort();
-            unsigned long getBaud();
-            uint32_t getSerialConfig();
             void setTcpPort(uint16_t value);
-            void setBaud(unsigned long value);
-            uint8_t getDataBits();
-            void setDataBits(uint8_t value);
-            uint8_t getParity();
-            void setParity(uint8_t value);
-            uint8_t getStopBits();
-            void setStopBits(uint8_t value);
+            unsigned long getModbusBaudRate();
+            uint32_t getModbusSerialConfig();
+            void setModbusBaudRate(unsigned long value);
+            uint8_t getModbusDataBits();
+            void setModbusDataBits(uint8_t value);
+            uint8_t getModbusParity();
+            void setModbusParity(uint8_t value);
+            uint8_t getModbusStopBits();
+            void setModbusStopBits(uint8_t value);
     };
     #ifdef DEBUG
     #define dbg(x...) debugSerial.print(x);

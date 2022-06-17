@@ -63,7 +63,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
             "<label for=\"baud\">Modbus baud rate</label>"
           "</td>"
           "<td>");
-    response->printf("<input type=\"number\" min=\"0\" id=\"baud\" name=\"baud\" value=\"%d\">", config->getBaud());
+    response->printf("<input type=\"number\" min=\"0\" id=\"baud\" name=\"baud\" value=\"%d\">", config->getModbusBaudRate());
     response->print("</td>"
         "</tr>"
         "<tr>"
@@ -71,7 +71,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
             "<label for=\"data\">Modbus data bits</label>"
           "</td>"
           "<td>");
-    response->printf("<input type=\"number\" min=\"5\" max=\"8\" id=\"data\" name=\"data\" value=\"%d\">", config->getDataBits());
+    response->printf("<input type=\"number\" min=\"5\" max=\"8\" id=\"data\" name=\"data\" value=\"%d\">", config->getModbusDataBits());
     response->print("</td>"
         "</tr>"
         "<tr>"
@@ -79,7 +79,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
             "<label for=\"parity\">Modbus parity</label>"
           "</td>"
           "<td>");
-    response->printf("<select id=\"parity\" name=\"parity\" data-value=\"%d\">", config->getParity());
+    response->printf("<select id=\"parity\" name=\"parity\" data-value=\"%d\">", config->getModbusParity());
     response->print("<option value=\"0\">None</option>"
               "<option value=\"2\">Even</option>"
               "<option value=\"3\">Odd</option>"
@@ -91,7 +91,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
             "<label for=\"stop\">Modbus stop bits</label>"
           "</td>"
           "<td>");
-    response->printf("<select id=\"stop\" name=\"stop\" data-value=\"%d\">", config->getStopBits());
+    response->printf("<select id=\"stop\" name=\"stop\" data-value=\"%d\">", config->getModbusStopBits());
     response->print("<option value=\"1\">1 bit</option>"
               "<option value=\"2\">1.5 bits</option>"
               "<option value=\"3\">2 bits</option>"
@@ -122,22 +122,22 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     }
     if (request->hasParam("baud", true)){
       auto baud = request->getParam("baud", true)->value().toInt();
-      config->setBaud(baud);
+      config->setModbusBaudRate(baud);
       dbgln("[webserver] saved baud");
     }
     if (request->hasParam("data", true)){
       auto data = request->getParam("data", true)->value().toInt();
-      config->setDataBits(data);
+      config->setModbusDataBits(data);
       dbgln("[webserver] saved data");
     }
     if (request->hasParam("parity", true)){
       auto parity = request->getParam("parity", true)->value().toInt();
-      config->setParity(parity);
+      config->setModbusParity(parity);
       dbgln("[webserver] saved parity");
     }
     if (request->hasParam("stop", true)){
       auto stop = request->getParam("stop", true)->value().toInt();
-      config->setStopBits(stop);
+      config->setModbusStopBits(stop);
       dbgln("[webserver] saved stop");
     }
     request->redirect("/");    
