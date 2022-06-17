@@ -48,7 +48,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
   server->on("/config", HTTP_GET, [config](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /config");
     auto *response = request->beginResponseStream("text/html");
-    sendResponseHeader(response, "Config");
+    sendResponseHeader(response, "Modbus TCP");
     response->print("<form method=\"post\">");
     response->print("<table>"
       "<tr>"
@@ -59,28 +59,31 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     response->printf("<input type=\"number\" min=\"1\" max=\"65535\" id=\"port\" name=\"port\" value=\"%d\">", config->getTcpPort());
     response->print("</td>"
         "</tr>"
+        "</table>"
+        "<h3>Modbus RTU</h3>"
+        "<table>"
         "<tr>"
           "<td>"
-            "<label for=\"baud\">Modbus baud rate</label>"
+            "<label for=\"mb\">Baud rate</label>"
           "</td>"
           "<td>");
-    response->printf("<input type=\"number\" min=\"0\" id=\"baud\" name=\"baud\" value=\"%d\">", config->getModbusBaudRate());
+    response->printf("<input type=\"number\" min=\"0\" id=\"mb\" name=\"mb\" value=\"%d\">", config->getModbusBaudRate());
     response->print("</td>"
         "</tr>"
         "<tr>"
           "<td>"
-            "<label for=\"data\">Modbus data bits</label>"
+            "<label for=\"md\">Data bits</label>"
           "</td>"
           "<td>");
-    response->printf("<input type=\"number\" min=\"5\" max=\"8\" id=\"data\" name=\"data\" value=\"%d\">", config->getModbusDataBits());
+    response->printf("<input type=\"number\" min=\"5\" max=\"8\" id=\"md\" name=\"md\" value=\"%d\">", config->getModbusDataBits());
     response->print("</td>"
         "</tr>"
         "<tr>"
           "<td>"
-            "<label for=\"parity\">Modbus parity</label>"
+            "<label for=\"mp\">Parity</label>"
           "</td>"
           "<td>");
-    response->printf("<select id=\"parity\" name=\"parity\" data-value=\"%d\">", config->getModbusParity());
+    response->printf("<select id=\"mp\" name=\"mp\" data-value=\"%d\">", config->getModbusParity());
     response->print("<option value=\"0\">None</option>"
               "<option value=\"2\">Even</option>"
               "<option value=\"3\">Odd</option>"
@@ -89,10 +92,53 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
         "</tr>"
         "<tr>"
           "<td>"
-            "<label for=\"stop\">Modbus stop bits</label>"
+            "<label for=\"ms\">Stop bits</label>"
           "</td>"
           "<td>");
-    response->printf("<select id=\"stop\" name=\"stop\" data-value=\"%d\">", config->getModbusStopBits());
+    response->printf("<select id=\"ms\" name=\"ms\" data-value=\"%d\">", config->getModbusStopBits());
+    response->print("<option value=\"1\">1 bit</option>"
+              "<option value=\"2\">1.5 bits</option>"
+              "<option value=\"3\">2 bits</option>"
+            "</select>"
+          "</td>"
+        "</tr>"
+        "</table>"
+        "<h3>Serial (Debug)</h3>"
+        "<table>"
+        "<tr>"
+          "<td>"
+            "<label for=\"sb\">Baud rate</label>"
+          "</td>"
+          "<td>");
+    response->printf("<input type=\"number\" min=\"0\" id=\"sb\" name=\"sb\" value=\"%d\">", config->getSerialBaudRate());
+    response->print("</td>"
+        "</tr>"
+        "<tr>"
+          "<td>"
+            "<label for=\"sd\">Data bits</label>"
+          "</td>"
+          "<td>");
+    response->printf("<input type=\"number\" min=\"5\" max=\"8\" id=\"sd\" name=\"sd\" value=\"%d\">", config->getSerialDataBits());
+    response->print("</td>"
+        "</tr>"
+        "<tr>"
+          "<td>"
+            "<label for=\"sp\">Parity</label>"
+          "</td>"
+          "<td>");
+    response->printf("<select id=\"sp\" name=\"sp\" data-value=\"%d\">", config->getSerialParity());
+    response->print("<option value=\"0\">None</option>"
+              "<option value=\"2\">Even</option>"
+              "<option value=\"3\">Odd</option>"
+            "</select>"
+          "</td>"
+        "</tr>"
+        "<tr>"
+          "<td>"
+            "<label for=\"ss\">Stop bits</label>"
+          "</td>"
+          "<td>");
+    response->printf("<select id=\"ss\" name=\"ss\" data-value=\"%d\">", config->getSerialStopBits());
     response->print("<option value=\"1\">1 bit</option>"
               "<option value=\"2\">1.5 bits</option>"
               "<option value=\"3\">2 bits</option>"
@@ -121,25 +167,45 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
       config->setTcpPort(port);
       dbgln("[webserver] saved port");
     }
-    if (request->hasParam("baud", true)){
-      auto baud = request->getParam("baud", true)->value().toInt();
+    if (request->hasParam("mb", true)){
+      auto baud = request->getParam("mb", true)->value().toInt();
       config->setModbusBaudRate(baud);
-      dbgln("[webserver] saved baud");
+      dbgln("[webserver] saved modbus baud rate");
     }
-    if (request->hasParam("data", true)){
-      auto data = request->getParam("data", true)->value().toInt();
+    if (request->hasParam("md", true)){
+      auto data = request->getParam("md", true)->value().toInt();
       config->setModbusDataBits(data);
-      dbgln("[webserver] saved data");
+      dbgln("[webserver] saved modbus data bits");
     }
-    if (request->hasParam("parity", true)){
-      auto parity = request->getParam("parity", true)->value().toInt();
+    if (request->hasParam("mp", true)){
+      auto parity = request->getParam("mp", true)->value().toInt();
       config->setModbusParity(parity);
-      dbgln("[webserver] saved parity");
+      dbgln("[webserver] saved modbus parity");
     }
-    if (request->hasParam("stop", true)){
-      auto stop = request->getParam("stop", true)->value().toInt();
+    if (request->hasParam("ms", true)){
+      auto stop = request->getParam("ms", true)->value().toInt();
       config->setModbusStopBits(stop);
-      dbgln("[webserver] saved stop");
+      dbgln("[webserver] saved modbus stop bits");
+    }
+    if (request->hasParam("sb", true)){
+      auto baud = request->getParam("sb", true)->value().toInt();
+      config->setSerialBaudRate(baud);
+      dbgln("[webserver] saved serial baud rate");
+    }
+    if (request->hasParam("sd", true)){
+      auto data = request->getParam("sd", true)->value().toInt();
+      config->setSerialDataBits(data);
+      dbgln("[webserver] saved serial data bits");
+    }
+    if (request->hasParam("sp", true)){
+      auto parity = request->getParam("sp", true)->value().toInt();
+      config->setSerialParity(parity);
+      dbgln("[webserver] saved serial parity");
+    }
+    if (request->hasParam("ss", true)){
+      auto stop = request->getParam("ss", true)->value().toInt();
+      config->setSerialStopBits(stop);
+      dbgln("[webserver] saved serial stop bits");
     }
     request->redirect("/");    
   });

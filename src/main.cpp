@@ -17,17 +17,19 @@ ModbusBridgeWiFi MBbridge;
 WiFiManager wm;
 
 void setup() {
-  debugSerial.begin(9600);
+  debugSerial.begin(115200);
   dbgln();
   dbgln("[config] load")
   prefs.begin("modbusRtuGw");
   config.begin(&prefs);
+  debugSerial.end();
+  debugSerial.begin(config.getSerialBaudRate(), config.getSerialConfig());
   dbgln("[wifi] start");
   WiFi.mode(WIFI_STA);
   wm.autoConnect();
   dbgln("[wifi] finished");
   dbgln("[modbus] start");
-  modbusSerial.begin(config.getModbusBaudRate(), config.getModbusSerialConfig());
+  modbusSerial.begin(config.getModbusBaudRate(), config.getModbusConfig());
   MBclient.setTimeout(1000);
   MBclient.begin();
   for (uint8_t i = 1; i < 248; i++)
