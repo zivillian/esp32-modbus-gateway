@@ -233,9 +233,15 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     if (request->hasParam("func", true)){
       func = request->getParam("func", true)->value();
     }
-    ModbusMessage answer = rtu->syncRequest(0xdeadbeef, slaveId.toInt(), func.toInt(), reg.toInt(), 1);
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Debug");
+    response->print("<pre>");
+    auto previous = LOGDEVICE;
+    auto debug = WebPrint(previous, response);
+    LOGDEVICE = &debug;
+    ModbusMessage answer = rtu->syncRequest(0xdeadbeef, slaveId.toInt(), func.toInt(), reg.toInt(), 1);
+    LOGDEVICE = previous;
+    response->print("</pre>");
     if (answer.getError() == SUCCESS){
       auto count = answer[2];
       response->print("<span >Answer: 0x");
@@ -374,6 +380,9 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     "}"
     ".e{"
       "color:red;"
+    "}"
+    "pre{"
+      "text-align:left;"
     "}"
     );
     response->addHeader("ETag", __DATE__ "" __TIME__);
