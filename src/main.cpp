@@ -26,6 +26,7 @@ void setup() {
   debugSerial.begin(config.getSerialBaudRate(), config.getSerialConfig());
   dbgln("[wifi] start");
   WiFi.mode(WIFI_STA);
+  wm.setClass("invert");
   wm.autoConnect();
   dbgln("[wifi] finished");
   dbgln("[modbus] start");
@@ -38,7 +39,7 @@ void setup() {
   }  
   MBbridge.start(config.getTcpPort(), 10, 10000);
   dbgln("[modbus] finished");
-  setupPages(&webServer, &MBclient, &MBbridge, &config);
+  setupPages(&webServer, &MBclient, &MBbridge, &config, &wm);
   webServer.begin();
   dbgln("[setup] finished");
 }

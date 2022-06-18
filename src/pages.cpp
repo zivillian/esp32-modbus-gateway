@@ -1,6 +1,6 @@
 #include "pages.h"
 
-void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *bridge, Config *config){
+void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *bridge, Config *config, WiFiManager *wm){
   server->on("/", HTTP_GET, [](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /");
     auto *response = request->beginResponseStream("text/html");
@@ -9,6 +9,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendButton(response, "Config", "config");
     sendButton(response, "Debug", "debug");
     sendButton(response, "Firmware update", "update");
+    sendButton(response, "WiFi reset", "wifi", "r");
     sendButton(response, "Reboot", "reboot", "r");
     sendResponseTrailer(response);
     request->send(response);
@@ -301,6 +302,31 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     }else{
       return;
     }
+  });
+  server->on("/wifi", HTTP_GET, [](AsyncWebServerRequest *request){
+    dbgln("[webserver] GET /wifi");
+    auto *response = request->beginResponseStream("text/html");
+    sendResponseHeader(response, "WiFi reset");
+    response->print("<p class=\"e\">"
+        "This will delete the stored WiFi config<br/>"
+        "and restart the ESP in AP mode.<br/> Are you sure?"
+      "</p>");
+    sendButton(response, "Back", "/");
+    response->print("<p></p>"
+      "<form method=\"post\">"
+        "<button class=\"r\">Yes, do it!</button>"
+      "</form>");    
+    sendResponseTrailer(response);
+    request->send(response);
+  });
+  server->on("/wifi", HTTP_POST, [wm](AsyncWebServerRequest *request){
+    dbgln("[webserver] POST /wifi");
+    request->redirect("/");
+    wm->erase();
+    dbgln("[webserver] erased wifi config");
+    dbgln("[webserver] rebooting...");
+    ESP.restart();
+    dbgln("[webserver] rebooted...");
   });
   server->on("/favicon.ico", [](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /favicon.ico");
