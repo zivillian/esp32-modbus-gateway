@@ -227,7 +227,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     dbgln("[webserver] GET /debug");
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Debug");
-    sendDebugForm(response, "1", "1", "3");
+    sendDebugForm(response, "1", "1", "3", "1");
     sendButton(response, "Back", "/");
     sendResponseTrailer(response);
     request->send(response);
@@ -246,13 +246,17 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     if (request->hasParam("func", true)){
       func = request->getParam("func", true)->value();
     }
+    String count = "1";
+    if (request->hasParam("count", true)){
+      count = request->getParam("count", true)->value();
+    }
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Debug");
     response->print("<pre>");
     auto previous = LOGDEVICE;
     auto debug = WebPrint(previous, response);
     LOGDEVICE = &debug;
-    ModbusMessage answer = rtu->syncRequest(0xdeadbeef, slaveId.toInt(), func.toInt(), reg.toInt(), 1);
+    ModbusMessage answer = rtu->syncRequest(0xdeadbeef, slaveId.toInt(), func.toInt(), reg.toInt(), count.toInt());
     LOGDEVICE = previous;
     response->print("</pre>");
     auto error = answer.getError();
@@ -268,7 +272,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     else{
       response->printf("<span class=\"e\">Error: %#02x (%s)</span>", error, ErrorName(error));
     }
-    sendDebugForm(response, slaveId, reg, func);
+    sendDebugForm(response, slaveId, reg, func, count);
     sendButton(response, "Back", "/");
     sendResponseTrailer(response);
     request->send(response);
@@ -443,7 +447,7 @@ void sendTableRow(AsyncResponseStream *response, const char *name, uint32_t valu
       "</tr>", name, value);
 }
 
-void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, String function){
+void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, String function, String count){
     response->print("<form method=\"post\">");
     response->print("<table>"
       "<tr>"
@@ -456,6 +460,19 @@ void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, St
         "</tr>"
         "<tr>"
           "<td>"
+            "<label for=\"func\">Function</label>"
+          "</td>"
+          "<td>");
+    response->printf("<select id=\"func\" name=\"func\" data-value=\"%s\">", function);
+    response->print("<option value=\"1\">01 Read Coils</option>"
+              "<option value=\"2\">02 Read Discrete Inputs</option>"
+              "<option value=\"3\">03 Read Holding Register</option>"
+              "<option value=\"4\">04 Read Input Register</option>"
+            "</select>"
+          "</td>"
+        "</tr>"
+        "<tr>"
+          "<td>"
             "<label for=\"reg\">Register</label>"
           "</td>"
           "<td>");
@@ -464,17 +481,13 @@ void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, St
         "</tr>"
         "<tr>"
           "<td>"
-            "<label for=\"func\">Function</label>"
+            "<label for=\"count\">Count</label>"
           "</td>"
           "<td>");
-    response->printf("<select id=\"func\" name=\"func\" data-value=\"%s\">", function);
-    response->print(
-              "<option value=\"3\">03 Read Holding Register</option>"
-              "<option value=\"4\">04 Read Input Register</option>"
-            "</select>"
-          "</td>"
+    response->printf("<input type=\"number\" min=\"0\" max=\"65535\" id=\"count\" name=\"count\" value=\"%s\">", count);
+    response->print("</td>"
         "</tr>"
-        "</table>");
+      "</table>");
     response->print("<button class=\"r\">Send</button>"
       "</form>"
       "<p></p>");
