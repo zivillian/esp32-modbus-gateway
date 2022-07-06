@@ -15,5 +15,5 @@
     void sendButton(AsyncResponseStream *response, const char *title, const char *action, const char *css = "");
     void sendTableRow(AsyncResponseStream *response, const char *name, uint32_t value);
     void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, String function);
-
+    const String ErrorName(Modbus::Error code);
 #endif /* PAGES_H */

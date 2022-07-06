@@ -255,7 +255,8 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     ModbusMessage answer = rtu->syncRequest(0xdeadbeef, slaveId.toInt(), func.toInt(), reg.toInt(), 1);
     LOGDEVICE = previous;
     response->print("</pre>");
-    if (answer.getError() == SUCCESS){
+    auto error = answer.getError();
+    if (error == SUCCESS){
       auto count = answer[2];
       response->print("<span >Answer: 0x");
       for (size_t i = 0; i < count; i++)
@@ -265,7 +266,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
       response->print("</span>");
     }
     else{
-      response->printf("<span class=\"e\">Error: %#02x</span>", answer.getError());
+      response->printf("<span class=\"e\">Error: %#02x (%s)</span>", error, ErrorName(error));
     }
     sendDebugForm(response, slaveId, reg, func);
     sendButton(response, "Back", "/");
@@ -484,4 +485,39 @@ void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, St
           "d.querySelector(`option[value='${d.dataset.value}']`).selected=true"
       "}})();"
       "</script>");
+}
+
+const String ErrorName(Modbus::Error code)
+{
+    switch (code)
+    {
+        case Modbus::Error::SUCCESS: return "Success";
+        case Modbus::Error::ILLEGAL_FUNCTION: return "Illegal function";
+        case Modbus::Error::ILLEGAL_DATA_ADDRESS: return "Illegal data address";
+        case Modbus::Error::ILLEGAL_DATA_VALUE: return "Illegal data value";
+        case Modbus::Error::SERVER_DEVICE_FAILURE: return "Server device failure";
+        case Modbus::Error::ACKNOWLEDGE: return "Acknowledge";
+        case Modbus::Error::SERVER_DEVICE_BUSY: return "Server device busy";
+        case Modbus::Error::NEGATIVE_ACKNOWLEDGE: return "Negative acknowledge";
+        case Modbus::Error::MEMORY_PARITY_ERROR: return "Memory parity error";
+        case Modbus::Error::GATEWAY_PATH_UNAVAIL: return "Gateway path unavailable";
+        case Modbus::Error::GATEWAY_TARGET_NO_RESP: return "Gateway target no response";
+        case Modbus::Error::TIMEOUT: return "Timeout";
+        case Modbus::Error::INVALID_SERVER: return "Invalid server";
+        case Modbus::Error::CRC_ERROR: return "CRC error";
+        case Modbus::Error::FC_MISMATCH: return "Function code mismatch";
+        case Modbus::Error::SERVER_ID_MISMATCH: return "Server id mismatch";
+        case Modbus::Error::PACKET_LENGTH_ERROR: return "Packet length error";
+        case Modbus::Error::PARAMETER_COUNT_ERROR: return "Parameter count error";
+        case Modbus::Error::PARAMETER_LIMIT_ERROR: return "Parameter limit error";
+        case Modbus::Error::REQUEST_QUEUE_FULL: return "Request queue full";
+        case Modbus::Error::ILLEGAL_IP_OR_PORT: return "Illegal ip or port";
+        case Modbus::Error::IP_CONNECTION_FAILED: return "IP connection failed";
+        case Modbus::Error::TCP_HEAD_MISMATCH: return "TCP header mismatch";
+        case Modbus::Error::EMPTY_MESSAGE: return "Empty message";
+        case Modbus::Error::ASCII_FRAME_ERR: return "ASCII frame error";
+        case Modbus::Error::ASCII_CRC_ERR: return "ASCII crc error";
+        case Modbus::Error::ASCII_INVALID_CHAR: return "ASCII invalid character";
+        default: return "undefined error";
+    }
 }
