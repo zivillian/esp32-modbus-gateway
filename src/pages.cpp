@@ -277,7 +277,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Firmware Update");
     response->print("<form method=\"post\" enctype=\"multipart/form-data\">"
-      "<input type=\"file\" name=\"file\" id=\"file\"/>"
+      "<input type=\"file\" name=\"file\" id=\"file\" required/>"
       "<p></p>"
       "<button class=\"r\">Upload</button>"
       "</form>"
