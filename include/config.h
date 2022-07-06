@@ -10,6 +10,7 @@
         private:
             Preferences *_prefs;
             int16_t _tcpPort;
+            uint32_t _tcpTimeout;
             unsigned long _modbusBaudRate;
             uint32_t _modbusConfig;
             unsigned long _serialBaudRate;
@@ -19,6 +20,8 @@
             void begin(Preferences *prefs);
             uint16_t getTcpPort();
             void setTcpPort(uint16_t value);
+            uint32_t getTcpTimeout();
+            void setTcpTimeout(uint32_t value);
             uint32_t getModbusConfig();
             unsigned long getModbusBaudRate();
             void setModbusBaudRate(unsigned long value);

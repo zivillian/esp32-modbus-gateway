@@ -54,10 +54,18 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     response->print("<table>"
       "<tr>"
         "<td>"
-          "<label for=\"port\">TCP Port</label>"
+          "<label for=\"tp\">TCP Port</label>"
         "</td>"
         "<td>");
-    response->printf("<input type=\"number\" min=\"1\" max=\"65535\" id=\"port\" name=\"port\" value=\"%d\">", config->getTcpPort());
+    response->printf("<input type=\"number\" min=\"1\" max=\"65535\" id=\"tp\" name=\"tp\" value=\"%d\">", config->getTcpPort());
+    response->print("</td>"
+      "</tr>"
+      "<tr>"
+        "<td>"
+          "<label for=\"tt\">TCP Timeout (ms)</label>"
+        "</td>"
+        "<td>");
+    response->printf("<input type=\"number\" min=\"1\" id=\"tt\" name=\"tt\" value=\"%d\">", config->getTcpTimeout());
     response->print("</td>"
         "</tr>"
         "</table>"
@@ -163,10 +171,15 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
   });
   server->on("/config", HTTP_POST, [config](AsyncWebServerRequest *request){
     dbgln("[webserver] POST /config");
-    if (request->hasParam("port", true)){
-      auto port = request->getParam("port", true)->value().toInt();
+    if (request->hasParam("tp", true)){
+      auto port = request->getParam("tp", true)->value().toInt();
       config->setTcpPort(port);
       dbgln("[webserver] saved port");
+    }
+    if (request->hasParam("tt", true)){
+      auto timeout = request->getParam("tt", true)->value().toInt();
+      config->setTcpTimeout(timeout);
+      dbgln("[webserver] saved timeout");
     }
     if (request->hasParam("mb", true)){
       auto baud = request->getParam("mb", true)->value().toInt();

@@ -3,6 +3,7 @@
 Config::Config()
     :_prefs(NULL)
     ,_tcpPort(502)
+    ,_tcpTimeout(10000)
     ,_modbusBaudRate(9600)
     ,_modbusConfig(SERIAL_8N1)
     ,_serialBaudRate(115200)
@@ -13,6 +14,7 @@ void Config::begin(Preferences *prefs)
 {
     _prefs = prefs;
     _tcpPort = _prefs->getUShort("tcpPort", _tcpPort);
+    _tcpTimeout = _prefs->getULong("tcpTimeout", _tcpTimeout);
     _modbusBaudRate = _prefs->getULong("modbusBaudRate", _modbusBaudRate);
     _modbusConfig = _prefs->getULong("modbusConfig", _modbusConfig);
     _serialBaudRate = _prefs->getULong("serialBaudRate", _serialBaudRate);
@@ -27,6 +29,16 @@ void Config::setTcpPort(uint16_t value){
     if (_tcpPort == value) return;
     _tcpPort = value;
     _prefs->putUShort("tcpPort", _tcpPort);
+}
+
+uint32_t Config::getTcpTimeout(){
+    return _tcpTimeout;
+}
+
+void Config::setTcpTimeout(uint32_t value){
+    if (_tcpTimeout == value) return;
+    _tcpTimeout = value;
+    _prefs->putULong("tcpTimeout", _tcpTimeout);
 }
 
 uint32_t Config::getModbusConfig(){

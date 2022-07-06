@@ -37,7 +37,7 @@ void setup() {
   {
     MBbridge.attachServer(i, i, ANY_FUNCTION_CODE, &MBclient);
   }  
-  MBbridge.start(config.getTcpPort(), 10, 10000);
+  MBbridge.start(config.getTcpPort(), 10, config.getTcpTimeout());
   dbgln("[modbus] finished");
   setupPages(&webServer, &MBclient, &MBbridge, &config, &wm);
   webServer.begin();
