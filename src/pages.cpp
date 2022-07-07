@@ -105,9 +105,32 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
           "</td>"
           "<td>");
     response->printf("<select id=\"ms\" name=\"ms\" data-value=\"%d\">", config->getModbusStopBits());
-    response->print("<option value=\"1\">1 bit</option>"
-              "<option value=\"2\">1.5 bits</option>"
-              "<option value=\"3\">2 bits</option>"
+    response->print("<option value=\"0\">None</option>"
+              "<option value=\"2\">Even</option>"
+              "<option value=\"3\">Odd</option>"
+            "</select>"
+          "</td>"
+        "</tr>"
+        "<tr>"
+          "<td>"
+            "<label for=\"mr\">RTS Pin</label>"
+          "</td>"
+          "<td>");
+    response->printf("<select id=\"mr\" name=\"mr\" data-value=\"%d\">", config->getModbusRtsPin());
+    response->print("<option value=\"-1\">Auto</option>"
+              "<option value=\"4\">D4</option>"
+              "<option value=\"13\">D13</option>"
+              "<option value=\"14\">D14</option>"
+              "<option value=\"18\">D18</option>"
+              "<option value=\"19\">D19</option>"
+              "<option value=\"21\">D21</option>"
+              "<option value=\"22\">D22</option>"
+              "<option value=\"23\">D23</option>"
+              "<option value=\"25\">D25</option>"
+              "<option value=\"26\">D26</option>"
+              "<option value=\"27\">D27</option>"
+              "<option value=\"32\">D32</option>"
+              "<option value=\"33\">D33</option>"
             "</select>"
           "</td>"
         "</tr>"
@@ -200,6 +223,11 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
       auto stop = request->getParam("ms", true)->value().toInt();
       config->setModbusStopBits(stop);
       dbgln("[webserver] saved modbus stop bits");
+    }
+    if (request->hasParam("mr", true)){
+      auto rts = request->getParam("mr", true)->value().toInt();
+      config->setModbusRtsPin(rts);
+      dbgln("[webserver] saved modbus rts pin");
     }
     if (request->hasParam("sb", true)){
       auto baud = request->getParam("sb", true)->value().toInt();

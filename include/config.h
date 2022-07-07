@@ -13,6 +13,7 @@
             uint32_t _tcpTimeout;
             unsigned long _modbusBaudRate;
             uint32_t _modbusConfig;
+            int8_t _modbusRtsPin;
             unsigned long _serialBaudRate;
             uint32_t _serialConfig;
         public:
@@ -31,6 +32,8 @@
             void setModbusParity(uint8_t value);
             uint8_t getModbusStopBits();
             void setModbusStopBits(uint8_t value);
+            int8_t getModbusRtsPin();
+            void setModbusRtsPin(int8_t value);
             uint32_t getSerialConfig();
             unsigned long getSerialBaudRate();
             void setSerialBaudRate(unsigned long value);

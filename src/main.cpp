@@ -12,7 +12,7 @@
 AsyncWebServer webServer(80);
 Config config;
 Preferences prefs;
-ModbusClientRTU MBclient(modbusSerial);
+ModbusClientRTU *MBclient;
 ModbusBridgeWiFi MBbridge;
 WiFiManager wm;
 
@@ -31,15 +31,16 @@ void setup() {
   dbgln("[wifi] finished");
   dbgln("[modbus] start");
   modbusSerial.begin(config.getModbusBaudRate(), config.getModbusConfig());
-  MBclient.setTimeout(1000);
-  MBclient.begin();
+  MBclient = new ModbusClientRTU(modbusSerial, config.getModbusRtsPin());
+  MBclient->setTimeout(1000);
+  MBclient->begin();
   for (uint8_t i = 1; i < 248; i++)
   {
-    MBbridge.attachServer(i, i, ANY_FUNCTION_CODE, &MBclient);
+    MBbridge.attachServer(i, i, ANY_FUNCTION_CODE, MBclient);
   }  
   MBbridge.start(config.getTcpPort(), 10, config.getTcpTimeout());
   dbgln("[modbus] finished");
-  setupPages(&webServer, &MBclient, &MBbridge, &config, &wm);
+  setupPages(&webServer, MBclient, &MBbridge, &config, &wm);
   webServer.begin();
   dbgln("[setup] finished");
 }

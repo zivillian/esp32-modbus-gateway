@@ -6,6 +6,7 @@ Config::Config()
     ,_tcpTimeout(10000)
     ,_modbusBaudRate(9600)
     ,_modbusConfig(SERIAL_8N1)
+    ,_modbusRtsPin(-1)
     ,_serialBaudRate(115200)
     ,_serialConfig(SERIAL_8N1)
 {}
@@ -17,6 +18,7 @@ void Config::begin(Preferences *prefs)
     _tcpTimeout = _prefs->getULong("tcpTimeout", _tcpTimeout);
     _modbusBaudRate = _prefs->getULong("modbusBaudRate", _modbusBaudRate);
     _modbusConfig = _prefs->getULong("modbusConfig", _modbusConfig);
+    _modbusRtsPin = _prefs->getChar("modbusRtsPin", _modbusRtsPin);
     _serialBaudRate = _prefs->getULong("serialBaudRate", _serialBaudRate);
     _serialConfig = _prefs->getULong("serialConfig", _serialConfig);
 }
@@ -90,6 +92,16 @@ void Config::setModbusStopBits(uint8_t value){
     if (stopbits == value) return;
     _modbusConfig = (_modbusConfig & 0xffffffcf) | value;
     _prefs->putULong("modbusConfig", _modbusConfig);
+}
+
+int8_t Config::getModbusRtsPin(){
+    return _modbusRtsPin;
+}
+
+void Config::setModbusRtsPin(int8_t value){
+    if (_modbusRtsPin == value) return;
+    _modbusRtsPin = value;
+    _prefs->putChar("modbusRtsPin", _modbusRtsPin);
 }
 
 uint32_t Config::getSerialConfig(){
