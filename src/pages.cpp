@@ -105,9 +105,9 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
           "</td>"
           "<td>");
     response->printf("<select id=\"ms\" name=\"ms\" data-value=\"%d\">", config->getModbusStopBits());
-    response->print("<option value=\"0\">None</option>"
-              "<option value=\"2\">Even</option>"
-              "<option value=\"3\">Odd</option>"
+    response->print("<option value=\"1\">1 bit</option>"
+              "<option value=\"2\">1.5 bits</option>"
+              "<option value=\"3\">2 bits</option>"
             "</select>"
           "</td>"
         "</tr>"
