@@ -298,7 +298,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
       response->print("</span>");
     }
     else{
-      response->printf("<span class=\"e\">Error: %#02x (%s)</span>", error, ErrorName(error));
+      response->printf("<span class=\"e\">Error: %#02x (%s)</span>", error, ErrorName(error).c_str());
     }
     sendDebugForm(response, slaveId, reg, func, count);
     sendButton(response, "Back", "/");
