@@ -4,6 +4,13 @@
     #include <Preferences.h>
     #define debugSerial Serial
     #define modbusSerial Serial2
+    #ifdef M5STACK
+    #define modbusRx GPIO_NUM_22
+    #define modbusTx GPIO_NUM_19
+    #else
+    #define modbusRx -1
+    #define modbusTx -1
+    #endif
     #define DEBUG
 
     class Config{
