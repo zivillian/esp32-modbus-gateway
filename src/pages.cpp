@@ -19,12 +19,12 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Status");
     response->print("<table>");
-    sendTableRow(response, "RTU Messages", rtu->getMessageCount());
-    sendTableRow(response, "RTU Pending Messages", rtu->pendingRequests());
-    sendTableRow(response, "RTU Errors", rtu->getErrorCount());
-    sendTableRow(response, "Bridge Message", bridge->getMessageCount());
-    sendTableRow(response, "Bridge Clients", bridge->activeClients());
-    sendTableRow(response, "Bridge Errors", bridge->getErrorCount());
+    sendTableRow(response, "RTU Messages", String(rtu->getMessageCount()));
+    sendTableRow(response, "RTU Pending Messages", String(rtu->pendingRequests()));
+    sendTableRow(response, "RTU Errors", String(rtu->getErrorCount()));
+    sendTableRow(response, "Bridge Message", String(bridge->getMessageCount()));
+    sendTableRow(response, "Bridge Clients", String(bridge->activeClients()));
+    sendTableRow(response, "Bridge Errors", String(bridge->getErrorCount()));
     response->print("</table><p></p>");
     sendButton(response, "Back", "/");
     sendResponseTrailer(response);
@@ -469,12 +469,12 @@ void sendButton(AsyncResponseStream *response, const char *title, const char *ac
       "<p></p>", action, css, title);
 }
 
-void sendTableRow(AsyncResponseStream *response, const char *name, uint32_t value){
+void sendTableRow(AsyncResponseStream *response, const char *name, String value){
     response->printf(
       "<tr>"
         "<td>%s:</td>"
-        "<td>%d</td>"
-      "</tr>", name, value);
+        "<td>%s</td>"
+      "</tr>", name, value.c_str());
 }
 
 void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, String function, String count){
