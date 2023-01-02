@@ -19,6 +19,15 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Status");
     response->print("<table>");
+
+    // show ESP infos...
+    sendTableRow(response, "ESP Uptime (sec)", String(esp_timer_get_time() / 1000000));
+    sendTableRow(response, "ESP SSID", WiFi.SSID());
+    sendTableRow(response, "ESP RSSI", String(WiFi.RSSI()));
+    sendTableRow(response, "ESP WiFi Quality", WiFiQuality(WiFi.RSSI()));
+    sendTableRow(response, "ESP MAC", WiFi.macAddress());
+    sendTableRow(response, "ESP IP",  WiFi.localIP().toString() );
+
     sendTableRow(response, "RTU Messages", String(rtu->getMessageCount()));
     sendTableRow(response, "RTU Pending Messages", String(rtu->pendingRequests()));
     sendTableRow(response, "RTU Errors", String(rtu->getErrorCount()));
@@ -562,5 +571,18 @@ const String ErrorName(Modbus::Error code)
         case Modbus::Error::ASCII_CRC_ERR: return "ASCII crc error";
         case Modbus::Error::ASCII_INVALID_CHAR: return "ASCII invalid character";
         default: return "undefined error";
+    }
+}
+
+// translate RSSI to quality string
+const String WiFiQuality(int rssiValue)
+{
+    switch (rssiValue)
+    {
+        case -30 ... 0: return "Amazing"; 
+        case -67 ... -31: return "Very Good"; 
+        case -70 ... -68: return "Okay"; 
+        case -80 ... -71: return "Not Good"; 
+        default: return "Unusable";
     }
 }
