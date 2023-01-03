@@ -30,7 +30,7 @@ void setup() {
   wm.autoConnect();
   dbgln("[wifi] finished");
   dbgln("[modbus] start");
-  modbusSerial.begin(config.getModbusBaudRate(), config.getModbusConfig());
+  modbusSerial.begin(config.getModbusBaudRate(), config.getModbusConfig(), modbusRx, modbusTx);
   MBclient = new ModbusClientRTU(modbusSerial, config.getModbusRtsPin());
   MBclient->setTimeout(1000);
   MBclient->begin();
