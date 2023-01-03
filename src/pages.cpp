@@ -21,19 +21,19 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     response->print("<table>");
 
     // show ESP infos...
-    sendTableRow(response, "ESP Uptime (sec)", String(esp_timer_get_time() / 1000000));
+    sendTableRow(response, "ESP Uptime (sec)", esp_timer_get_time() / 1000000);
     sendTableRow(response, "ESP SSID", WiFi.SSID());
-    sendTableRow(response, "ESP RSSI", String(WiFi.RSSI()));
+    sendTableRow(response, "ESP RSSI", WiFi.RSSI());
     sendTableRow(response, "ESP WiFi Quality", WiFiQuality(WiFi.RSSI()));
     sendTableRow(response, "ESP MAC", WiFi.macAddress());
     sendTableRow(response, "ESP IP",  WiFi.localIP().toString() );
 
-    sendTableRow(response, "RTU Messages", String(rtu->getMessageCount()));
-    sendTableRow(response, "RTU Pending Messages", String(rtu->pendingRequests()));
-    sendTableRow(response, "RTU Errors", String(rtu->getErrorCount()));
-    sendTableRow(response, "Bridge Message", String(bridge->getMessageCount()));
-    sendTableRow(response, "Bridge Clients", String(bridge->activeClients()));
-    sendTableRow(response, "Bridge Errors", String(bridge->getErrorCount()));
+    sendTableRow(response, "RTU Messages", rtu->getMessageCount());
+    sendTableRow(response, "RTU Pending Messages", rtu->pendingRequests());
+    sendTableRow(response, "RTU Errors", rtu->getErrorCount());
+    sendTableRow(response, "Bridge Message", bridge->getMessageCount());
+    sendTableRow(response, "Bridge Clients", bridge->activeClients());
+    sendTableRow(response, "Bridge Errors", bridge->getErrorCount());
     response->print("</table><p></p>");
     sendButton(response, "Back", "/");
     sendResponseTrailer(response);
@@ -484,6 +484,14 @@ void sendTableRow(AsyncResponseStream *response, const char *name, String value)
         "<td>%s:</td>"
         "<td>%s</td>"
       "</tr>", name, value.c_str());
+}
+
+void sendTableRow(AsyncResponseStream *response, const char *name, uint32_t value){
+    response->printf(
+      "<tr>"
+        "<td>%s:</td>"
+        "<td>%d</td>"
+      "</tr>", name, value);
 }
 
 void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, String function, String count){
