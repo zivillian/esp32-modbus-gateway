@@ -19,6 +19,15 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Status");
     response->print("<table>");
+
+    // show ESP infos...
+    sendTableRow(response, "ESP Uptime (sec)", esp_timer_get_time() / 1000000);
+    sendTableRow(response, "ESP SSID", WiFi.SSID());
+    sendTableRow(response, "ESP RSSI", WiFi.RSSI());
+    sendTableRow(response, "ESP WiFi Quality", WiFiQuality(WiFi.RSSI()));
+    sendTableRow(response, "ESP MAC", WiFi.macAddress());
+    sendTableRow(response, "ESP IP",  WiFi.localIP().toString() );
+
     sendTableRow(response, "RTU Messages", rtu->getMessageCount());
     sendTableRow(response, "RTU Pending Messages", rtu->pendingRequests());
     sendTableRow(response, "RTU Errors", rtu->getErrorCount());
@@ -469,6 +478,14 @@ void sendButton(AsyncResponseStream *response, const char *title, const char *ac
       "<p></p>", action, css, title);
 }
 
+void sendTableRow(AsyncResponseStream *response, const char *name, String value){
+    response->printf(
+      "<tr>"
+        "<td>%s:</td>"
+        "<td>%s</td>"
+      "</tr>", name, value.c_str());
+}
+
 void sendTableRow(AsyncResponseStream *response, const char *name, uint32_t value){
     response->printf(
       "<tr>"
@@ -562,5 +579,18 @@ const String ErrorName(Modbus::Error code)
         case Modbus::Error::ASCII_CRC_ERR: return "ASCII crc error";
         case Modbus::Error::ASCII_INVALID_CHAR: return "ASCII invalid character";
         default: return "undefined error";
+    }
+}
+
+// translate RSSI to quality string
+const String WiFiQuality(int rssiValue)
+{
+    switch (rssiValue)
+    {
+        case -30 ... 0: return "Amazing"; 
+        case -67 ... -31: return "Very Good"; 
+        case -70 ... -68: return "Okay"; 
+        case -80 ... -71: return "Not Good"; 
+        default: return "Unusable";
     }
 }
