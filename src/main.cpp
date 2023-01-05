@@ -30,7 +30,16 @@ void setup() {
   wm.autoConnect();
   dbgln("[wifi] finished");
   dbgln("[modbus] start");
+
+#if defined(RX_PIN) || defined(TX_PIN)
+  // use rx and tx-pins if defined in platformio.ini
+  modbusSerial.begin(config.getModbusBaudRate(), config.getModbusConfig(), RX_PIN, TX_PIN );
+  dbgln("Use user defined RX/TX pins");
+#else
+  // otherwise use default pins for hardware-serial2
   modbusSerial.begin(config.getModbusBaudRate(), config.getModbusConfig());
+#endif
+
   MBclient = new ModbusClientRTU(modbusSerial, config.getModbusRtsPin());
   MBclient->setTimeout(1000);
   MBclient->begin();
