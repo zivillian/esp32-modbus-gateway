@@ -31,7 +31,7 @@ void setup() {
   dbgln("[wifi] finished");
   dbgln("[modbus] start");
 
-#if defined(RX_PIN) || defined(TX_PIN)
+#if defined(RX_PIN) && defined(TX_PIN)
   // use rx and tx-pins if defined in platformio.ini
   modbusSerial.begin(config.getModbusBaudRate(), config.getModbusConfig(), RX_PIN, TX_PIN );
   dbgln("Use user defined RX/TX pins");
