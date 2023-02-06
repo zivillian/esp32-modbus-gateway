@@ -28,9 +28,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install --upgrade platformio
     - name: Run PlatformIO
-      run: pio run -e esp32dev
+      run: pio run -e esp32release
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
         name: image
-        path: .pio/build/esp32dev/firmware.bin
+        path: .pio/build/esp32release/firmware.bin
