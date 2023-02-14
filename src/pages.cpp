@@ -34,6 +34,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendTableRow(response, "Bridge Message", bridge->getMessageCount());
     sendTableRow(response, "Bridge Clients", bridge->activeClients());
     sendTableRow(response, "Bridge Errors", bridge->getErrorCount());
+    sendTableRow(response, "Firmware", "Stream-RTU");
     response->print("</table><p></p>");
     sendButton(response, "Back", "/");
     sendResponseTrailer(response);
