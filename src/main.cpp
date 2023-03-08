@@ -30,7 +30,7 @@ void setup() {
   wm.autoConnect();
   dbgln("[wifi] finished");
   dbgln("[modbus] start");
-  modbusSerial.setRxBufferSize(260);
+  RTUutils::prepareHardwareSerial(modbusSerial);
 #if defined(RX_PIN) && defined(TX_PIN)
   // use rx and tx-pins if defined in platformio.ini
   modbusSerial.begin(config.getModbusBaudRate(), config.getModbusConfig(), RX_PIN, TX_PIN );
@@ -39,11 +39,10 @@ void setup() {
   // otherwise use default pins for hardware-serial2
   modbusSerial.begin(config.getModbusBaudRate(), config.getModbusConfig());
 #endif
-  modbusSerial.setRxFIFOFull(1); // Most important!
 
-  MBclient = new ModbusClientRTU(modbusSerial, config.getModbusRtsPin());
+  MBclient = new ModbusClientRTU(config.getModbusRtsPin());
   MBclient->setTimeout(1000);
-  MBclient->begin();
+  MBclient->begin(modbusSerial);
   for (uint8_t i = 1; i < 248; i++)
   {
     MBbridge.attachServer(i, i, ANY_FUNCTION_CODE, MBclient);
