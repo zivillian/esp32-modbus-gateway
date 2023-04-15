@@ -1,4 +1,5 @@
 #include "pages.h"
+#define ETAG "\"" __DATE__ "" __TIME__ "\""
 
 void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *bridge, Config *config, WiFiManager *wm){
   server->on("/", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -396,6 +397,13 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     request->send(204);//TODO add favicon
   });
   server->on("/style.css", [](AsyncWebServerRequest *request){
+    if (request->hasHeader("If-None-Match")){
+      auto header = request->getHeader("If-None-Match");
+      if (header->value() == String(ETAG)){
+        request->send(304);
+        return;
+      }
+    }
     dbgln("[webserver] GET /style.css");
     auto *response = request->beginResponse(200, "text/css",
     "body{"    
@@ -442,7 +450,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
       "text-align:left;"
     "}"
     );
-    response->addHeader("ETag", __DATE__ "" __TIME__);
+    response->addHeader("ETag", ETAG);
     request->send(response);
   });
   server->onNotFound([](AsyncWebServerRequest *request){
