@@ -18,7 +18,9 @@ Preferences prefs;
 ModbusClientRTU *MBclient;
 ModbusBridgeWiFi MBbridge;
 WiFiManager wm;
+#if defined(WIFI_RST_BUTTON_PIN)  
 Button2 wifiButton;    
+#endif
 
 // select which pin will trigger the configuration portal when set to LOW
 
@@ -94,5 +96,7 @@ void setup() {
 
 
 void loop() {
+#if defined(WIFI_RST_BUTTON_PIN) 
   wifiButton.loop();
+#endif
 }
