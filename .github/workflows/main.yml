@@ -28,3 +28,11 @@ jobs:
         with:
           name: image
           path: .pio/build/esp32release/firmware.bin
+          
+      - name: Build PlatformIO Project
+        run: pio run -e esp32debug
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: debug
+          path: .pio/build/esp32debug/firmware.bin
