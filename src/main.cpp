@@ -27,7 +27,12 @@ void setup() {
   dbgln("[wifi] start");
   WiFi.mode(WIFI_STA);
   wm.setClass("invert");
+  auto reboot = false;
+  wm.setAPCallback([&reboot](WiFiManager *wifiManager){reboot = true;});
   wm.autoConnect();
+  if (reboot){
+    ESP.restart();
+  }
   dbgln("[wifi] finished");
   dbgln("[modbus] start");
 
