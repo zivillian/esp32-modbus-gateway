@@ -337,6 +337,9 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     request->send(response);
   });
   server->on("/update", HTTP_POST, [](AsyncWebServerRequest *request){
+    request->onDisconnect([](){
+      ESP.restart();
+    });
     dbgln("[webserver] OTA finished");
     if (Update.hasError()){
       auto *response = request->beginResponse(500, "text/plain", "Ota failed");
@@ -344,9 +347,14 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
       request->send(response);
     }
     else{
-      request->redirect("/");
+      auto *response = request->beginResponseStream("text/html");
+      response->addHeader("Connection", "close");
+      sendResponseHeader(response, "Firmware Update", true);
+      response->print("<p>Update successful.</p>");
+      sendButton(response, "Back", "/");
+      sendResponseTrailer(response);
+      request->send(response);
     }
-    ESP.restart();
   }, [&](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
     dbg("[webserver] OTA progress ");dbgln(index);
     if (!index) {
@@ -410,31 +418,9 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
       }
     }
     dbgln("[webserver] GET /style.css");
-    auto *response = request->beginResponse(200, "text/css",
-    "body{"    
-      "font-family:sans-serif;"
-	    "text-align: center;"
-      "background: #252525;"
-	    "color: #faffff;"
-    "}"
-    "#content{"
-	    "display: inline-block;"
-	    "min-width: 340px;"
-    "}"
-    "button{"
-	    "width: 100%;"
-	    "line-height: 2.4rem;"
-	    "background: #1fa3ec;"
-	    "border: 0;"
-	    "border-radius: 0.3rem;"
-	    "font-size: 1.2rem;"
-      "-webkit-transition-duration: 0.4s;"
-      "transition-duration: 0.4s;"
-	    "color: #faffff;"
-    "}"
-    "button:hover{"
-	    "background: #0e70a4;"
-    "}"
+    auto *response = request->beginResponseStream("text/css");
+    sendMinCss(response);
+    response->print(
     "button.r{"
 	    "background: #d43535;"
     "}"
@@ -464,14 +450,49 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
   });
 }
 
-void sendResponseHeader(AsyncResponseStream *response, const char *title){
+void sendMinCss(AsyncResponseStream *response){
+  response->print("body{"    
+      "font-family:sans-serif;"
+	    "text-align: center;"
+      "background: #252525;"
+	    "color: #faffff;"
+    "}"
+    "#content{"
+	    "display: inline-block;"
+	    "min-width: 340px;"
+    "}"
+    "button{"
+	    "width: 100%;"
+	    "line-height: 2.4rem;"
+	    "background: #1fa3ec;"
+	    "border: 0;"
+	    "border-radius: 0.3rem;"
+	    "font-size: 1.2rem;"
+      "-webkit-transition-duration: 0.4s;"
+      "transition-duration: 0.4s;"
+	    "color: #faffff;"
+    "}"
+    "button:hover{"
+	    "background: #0e70a4;"
+    "}");
+}
+
+void sendResponseHeader(AsyncResponseStream *response, const char *title, bool inlineStyle){
     response->print("<!DOCTYPE html>"
       "<html lang=\"en\" class=\"\">"
       "<head>"
       "<meta charset='utf-8'>"
       "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1,user-scalable=no\"/>");
     response->printf("<title>ESP32 Modbus Gateway - %s</title>", title);
-    response->print("<link rel=\"stylesheet\" href=\"style.css\">"
+    if (inlineStyle){
+      response->print("<style>");
+      sendMinCss(response);
+      response->print("</style>");
+    }
+    else{
+      response->print("<link rel=\"stylesheet\" href=\"style.css\">");
+    }
+    response->print(
       "</head>"
       "<body>"
       "<h2>ESP32 Modbus Gateway</h2>");
