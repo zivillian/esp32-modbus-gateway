@@ -31,6 +31,7 @@ void setup() {
   dbgln("[wifi] finished");
   dbgln("[modbus] start");
 
+  MBUlogLvl = LOG_LEVEL_WARNING;
   RTUutils::prepareHardwareSerial(modbusSerial);
 #if defined(RX_PIN) && defined(TX_PIN)
   // use rx and tx-pins if defined in platformio.ini

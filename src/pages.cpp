@@ -35,6 +35,8 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendTableRow(response, "Bridge Message", bridge->getMessageCount());
     sendTableRow(response, "Bridge Clients", bridge->activeClients());
     sendTableRow(response, "Bridge Errors", bridge->getErrorCount());
+    response->print("<tr><td>&nbsp;</td><td></td></tr>");
+    sendTableRow(response, "Build time", __DATE__ " " __TIME__);
     response->print("</table><p></p>");
     sendButton(response, "Back", "/");
     sendResponseTrailer(response);
@@ -88,7 +90,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
             "<label for=\"mb\">Baud rate</label>"
           "</td>"
           "<td>");
-    response->printf("<input type=\"number\" min=\"0\" id=\"mb\" name=\"mb\" value=\"%d\">", config->getModbusBaudRate());
+    response->printf("<input type=\"number\" min=\"0\" id=\"mb\" name=\"mb\" value=\"%lu\">", config->getModbusBaudRate());
     response->print("</td>"
         "</tr>"
         "<tr>"
@@ -154,7 +156,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
             "<label for=\"sb\">Baud rate</label>"
           "</td>"
           "<td>");
-    response->printf("<input type=\"number\" min=\"0\" id=\"sb\" name=\"sb\" value=\"%d\">", config->getSerialBaudRate());
+    response->printf("<input type=\"number\" min=\"0\" id=\"sb\" name=\"sb\" value=\"%lu\">", config->getSerialBaudRate());
     response->print("</td>"
         "</tr>"
         "<tr>"
@@ -294,9 +296,12 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendResponseHeader(response, "Debug");
     response->print("<pre>");
     auto previous = LOGDEVICE;
+    auto previousLevel = MBUlogLvl;
     auto debug = WebPrint(previous, response);
     LOGDEVICE = &debug;
+    MBUlogLvl = LOG_LEVEL_DEBUG;
     ModbusMessage answer = rtu->syncRequest(0xdeadbeef, slaveId.toInt(), func.toInt(), reg.toInt(), count.toInt());
+    MBUlogLvl = previousLevel;
     LOGDEVICE = previous;
     response->print("</pre>");
     auto error = answer.getError();
@@ -510,7 +515,7 @@ void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, St
           "<label for=\"slave\">Slave ID</label>"
         "</td>"
         "<td>");
-    response->printf("<input type=\"number\" min=\"0\" max=\"247\" id=\"slave\" name=\"slave\" value=\"%s\">", slaveId);
+    response->printf("<input type=\"number\" min=\"0\" max=\"247\" id=\"slave\" name=\"slave\" value=\"%s\">", slaveId.c_str());
     response->print("</td>"
         "</tr>"
         "<tr>"
@@ -518,7 +523,7 @@ void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, St
             "<label for=\"func\">Function</label>"
           "</td>"
           "<td>");
-    response->printf("<select id=\"func\" name=\"func\" data-value=\"%s\">", function);
+    response->printf("<select id=\"func\" name=\"func\" data-value=\"%s\">", function.c_str());
     response->print("<option value=\"1\">01 Read Coils</option>"
               "<option value=\"2\">02 Read Discrete Inputs</option>"
               "<option value=\"3\">03 Read Holding Register</option>"
@@ -531,7 +536,7 @@ void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, St
             "<label for=\"reg\">Register</label>"
           "</td>"
           "<td>");
-    response->printf("<input type=\"number\" min=\"0\" max=\"65535\" id=\"reg\" name=\"reg\" value=\"%s\">", reg);
+    response->printf("<input type=\"number\" min=\"0\" max=\"65535\" id=\"reg\" name=\"reg\" value=\"%s\">", reg.c_str());
     response->print("</td>"
         "</tr>"
         "<tr>"
@@ -539,7 +544,7 @@ void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, St
             "<label for=\"count\">Count</label>"
           "</td>"
           "<td>");
-    response->printf("<input type=\"number\" min=\"0\" max=\"65535\" id=\"count\" name=\"count\" value=\"%s\">", count);
+    response->printf("<input type=\"number\" min=\"0\" max=\"65535\" id=\"count\" name=\"count\" value=\"%s\">", count.c_str());
     response->print("</td>"
         "</tr>"
       "</table>");
