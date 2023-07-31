@@ -49,7 +49,7 @@ void setup() {
 
   MBclient = new ModbusClientRTU(config.getModbusRtsPin());
   MBclient->setTimeout(1000);
-  MBclient->begin(modbusSerial);
+  MBclient->begin(modbusSerial, 1);
   for (uint8_t i = 1; i < 248; i++)
   {
     MBbridge.attachServer(i, i, ANY_FUNCTION_CODE, MBclient);
