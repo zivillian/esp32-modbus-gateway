@@ -6,6 +6,11 @@
     #define modbusSerial Serial2
     #define DEBUG
 
+    enum IpMode{
+        DHCP,
+        staticIp
+    };
+
     class Config{
         private:
             Preferences *_prefs;
@@ -16,6 +21,12 @@
             int8_t _modbusRtsPin;
             unsigned long _serialBaudRate;
             uint32_t _serialConfig;
+            String _ssid;
+            String _wifiPassword;
+            IpMode _ipMode;
+            IPAddress _localIP;
+            IPAddress _gatewayIp;
+            IPAddress _subnetMask;
         public:
             Config();
             void begin(Preferences *prefs);
@@ -43,7 +54,20 @@
             void setSerialParity(uint8_t value);
             uint8_t getSerialStopBits();
             void setSerialStopBits(uint8_t value);
+            String getSsid();
+            void setSsid(String value);
+            String getWifiPassword();
+            void setWifiPassword(String value);
+            IpMode getIpMode();
+            void setIpMode(IpMode value);
+            IPAddress getLocalIp();
+            void setLocalIp(IPAddress value);
+            IPAddress getGatewayIp();
+            void setGatewayIp(IPAddress value);
+            IPAddress getSubnetMask();
+            void setSubnetMask(IPAddress value);
     };
+
     #ifdef DEBUG
     #define dbg(x...) debugSerial.print(x);
     #define dbgln(x...) debugSerial.println(x);
