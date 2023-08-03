@@ -9,6 +9,13 @@ Config::Config()
     ,_modbusRtsPin(-1)
     ,_serialBaudRate(115200)
     ,_serialConfig(SERIAL_8N1)
+    ,_ssid("")
+    ,_wifiPassword("")
+    ,_ipMode(DHCP)
+    ,_localIP(0,0,0,0)
+    ,_gatewayIp(0,0,0,0)
+    ,_subnetMask(0,0,0,0)
+
 {}
 
 void Config::begin(Preferences *prefs)
@@ -21,6 +28,12 @@ void Config::begin(Preferences *prefs)
     _modbusRtsPin = _prefs->getChar("modbusRtsPin", _modbusRtsPin);
     _serialBaudRate = _prefs->getULong("serialBaudRate", _serialBaudRate);
     _serialConfig = _prefs->getULong("serialConfig", _serialConfig);
+    _ssid = _prefs->getString("ssid", _ssid);
+    _wifiPassword = _prefs->getString("wifiPassword", _wifiPassword);
+    _ipMode = (IpMode)_prefs->getUChar("ipMode", _ipMode);
+    _localIP = _prefs->getULong("localIp", _localIP);
+    _gatewayIp = _prefs ->getULong("gatewayIp", _gatewayIp);
+    _subnetMask = _prefs->getULong("subnetMask", _subnetMask);
 }
 
 uint16_t Config::getTcpPort(){
@@ -153,4 +166,64 @@ void Config::setSerialStopBits(uint8_t value){
     if (stopbits == value) return;
     _serialConfig = (_serialConfig & 0xffffffcf) | value;
     _prefs->putULong("serialConfig", _serialConfig);
+}
+
+String Config::getSsid(){
+    return _ssid;
+}
+
+void Config::setSsid(String value){
+    if(_ssid == value) return;
+    _ssid = value;
+    _prefs->putString("ssid", _ssid);
+}
+
+String Config::getWifiPassword(){
+    return _wifiPassword;
+}
+
+void Config::setWifiPassword(String value){
+    if(_wifiPassword == value) return;
+    _wifiPassword = value;
+    _prefs->putString("wifiPassword", _wifiPassword);
+}
+
+IpMode Config::getIpMode(){
+    return _ipMode;
+}
+
+void Config::setIpMode(IpMode value){
+    if(_ipMode == value) return;
+    _ipMode = value;
+    _prefs->putUChar("ipMode", _ipMode);
+}
+
+IPAddress Config::getLocalIp(){
+    return _localIP;
+}
+
+void Config::setLocalIp(IPAddress value){
+    if(_localIP == value) return;
+    _localIP = value;
+    _prefs->putULong("localIp", _localIP);
+}
+
+IPAddress Config::getGatewayIp(){
+    return _gatewayIp;
+}
+
+void Config::setGatewayIp(IPAddress value){
+    if(_gatewayIp == value) return;
+    _gatewayIp = value;
+    _prefs->putULong("gatewayIp", _gatewayIp);
+}
+
+IPAddress Config::getSubnetMask(){
+    return _subnetMask;
+}
+
+void Config::setSubnetMask(IPAddress value){
+    if(_subnetMask == value) return;
+    _subnetMask = value;
+    _prefs->putULong("subnetMask", _subnetMask);
 }

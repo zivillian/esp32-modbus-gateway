@@ -29,11 +29,23 @@ void setup() {
   wm.setClass("invert");
   auto reboot = false;
   wm.setAPCallback([&reboot](WiFiManager *wifiManager){reboot = true;});
-  wm.autoConnect();
+  if(config.getIpMode() == staticIp){
+    wm.setSTAStaticIPConfig(config.getLocalIp(), config.getGatewayIp(), config.getSubnetMask());
+  }
+  // if there is no SSID or no password stored in the config, then use the autoconnect with parameters from WifiManager
+  if(config.getSsid().isEmpty() || config.getWifiPassword().isEmpty()){
+    wm.autoConnect();
+    dbgln("[wifi] WifiManager autoconnect without config parameters used");
+  }
+  else{
+    wm.autoConnect(config.getSsid().c_str(), config.getWifiPassword().c_str());
+    dbgln("[wifi] WifiManager autoconnect with config parameters used");
+  }
   if (reboot){
     ESP.restart();
   }
   dbgln("[wifi] finished");
+  config.setSsid(wm.getWiFiSSID()); // set SSID to store it in config
   dbgln("[modbus] start");
 
   MBUlogLvl = LOG_LEVEL_WARNING;

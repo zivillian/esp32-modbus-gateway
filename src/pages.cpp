@@ -191,6 +191,68 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
             "</select>"
           "</td>"
         "</tr>"
+        "</table>"
+        "<h3>Wifi Settings</h3>"
+        "<table>"
+        "<tr>"
+          "<td>"
+            "<label for=\"ws\">SSID</label>"
+          "</td>"
+          "<td>");
+    response->printf("<input type=\"text\" id=\"ws\" name=\"ws\" value=\"%s\">", config->getSsid().c_str());
+    response->print(
+          "</td>"
+        "</tr>"
+        "<tr>"
+          "<td>"
+            "<label for=\"wp\">Wifi Password</label>"
+          "</td>"
+          "<td>");
+    response->printf("<input type=\"password\" id=\"wp\" name=\"wp\" value=\"%s\">", config->getWifiPassword().c_str());
+    response->print(
+          "</td>"
+        "</tr>"
+        "</table>" 
+        "<h3>IP Settings</h3>"
+        "<table>"
+        "<tr>"
+          "<td>"
+            "<label for=\"im\">IP Address Mode</label>"
+          "</td>"
+          "<td>");
+    response->printf("<select id=\"im\" name=\"im\" data-value=\"%d\">", config->getIpMode());
+    response->print("<option value=\"0\">DHCP</option>"
+              "<option value=\"1\">static IP</option>"
+            "</select>"
+          "</td>"
+        "</tr>"
+        "<tr>"
+          "<td>"
+            "<label for=\"ia\">IP Address</label>"
+          "</td>"
+          "<td>");
+    response->printf("<input type=\"text\" id=\"ia\" name=\"ia\" value=\"%s\">", config->getLocalIp().toString().c_str());
+    response->print(
+          "</td>"
+        "</tr>"
+        "<tr>"
+          "<td>"
+            "<label for=\"ig\">Gateway</label>"
+          "</td>"
+          "<td>");
+    response->printf("<input type=\"text\" id=\"ig\" name=\"ig\" value=\"%s\">", config->getGatewayIp().toString().c_str());
+    response->print(
+          "</td>"
+        "</tr>"
+        "<tr>"
+          "<td>"
+            "<label for=\"is\">Subnet Mask</label>"
+          "</td>"
+          "<td>");
+    response->printf("<input type=\"text\" id=\"is\" name=\"is\" value=\"%s\">", config->getSubnetMask().toString().c_str());
+    response->print(
+          "</td>"
+        "</tr>"
         "</table>");
     response->print("<button class=\"r\">Save</button>"
       "</form>"
@@ -262,6 +324,42 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
       auto stop = request->getParam("ss", true)->value().toInt();
       config->setSerialStopBits(stop);
       dbgln("[webserver] saved serial stop bits");
+    }
+    if (request->hasParam("ws", true)){
+      auto ssid = request->getParam("ws", true)->value();
+      config->setSsid(ssid);
+      dbgln("[webserver] saved Wifi SSID");
+    }
+    if (request->hasParam("wp", true)){
+      auto passwd = request->getParam("wp", true)->value();
+      config->setWifiPassword(passwd);
+      dbgln("[webserver] saved WIFI password");
+    } 
+    if (request->hasParam("im", true)){
+      auto mode = request->getParam("im", true)->value().toInt();
+      config->setIpMode((IpMode)mode);
+      dbgln("[webserver] saved IP mode");
+    }
+    if (request->hasParam("ia", true)){
+      auto localip = request->getParam("ia", true)->value();
+      IPAddress ip;
+      ip.fromString(localip);
+      config->setLocalIp(ip);
+      dbgln("[webserver] saved local IP address");
+    }
+    if (request->hasParam("ig", true)){
+      auto gateway = request->getParam("ig", true)->value();
+      IPAddress ip;
+      ip.fromString(gateway);
+      config->setGatewayIp(ip);
+      dbgln("[webserver] saved gateway address");
+    }
+    if (request->hasParam("is", true)){
+      auto subnetmask = request->getParam("is", true)->value();
+      IPAddress ip;
+      ip.fromString(subnetmask);
+      config->setSubnetMask(ip);
+      dbgln("[webserver] saved subnet mask");
     }
     request->redirect("/");    
   });
