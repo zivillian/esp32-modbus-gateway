@@ -48,7 +48,7 @@ void setup() {
 #endif
 
   MBclient = new ModbusClientRTU(config.getModbusRtsPin());
-  MBclient->setTimeout(1000);
+  MBclient->setTimeout(config.getRtuTimeout());
   MBclient->begin(modbusSerial, 1);
   for (uint8_t i = 1; i < 248; i++)
   {

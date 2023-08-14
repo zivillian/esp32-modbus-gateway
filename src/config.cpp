@@ -104,6 +104,16 @@ void Config::setModbusRtsPin(int8_t value){
     _prefs->putChar("modbusRtsPin", _modbusRtsPin);
 }
 
+uint32_t Config::getRtuTimeout(){
+    return _rtuTimeout;
+}
+
+void Config::setRtuTimeout(uint32_t value){
+    if (_rtuTimeout == value) return;
+    _rtuTimeout = value;
+    _prefs->putULong("rtuTimeout", _rtuTimeout);
+}
+
 uint32_t Config::getSerialConfig(){
     return _serialConfig;
 }

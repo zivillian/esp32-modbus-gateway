@@ -148,6 +148,14 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
             "</select>"
           "</td>"
         "</tr>"
+        "<tr>"
+          "<td>"
+            "<label for=\"rt\">RTU Timeout (ms)</label>"
+          "</td>"
+          "<td>");
+    response->printf("<input type=\"number\" min=\"1\" id=\"rt\" name=\"rt\" value=\"%d\">", config->getRtuTimeout());
+    response->print("</td>"
+        "</tr>"
         "</table>"
         "<h3>Serial (Debug)</h3>"
         "<table>"
@@ -214,9 +222,9 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
       dbgln("[webserver] saved port");
     }
     if (request->hasParam("tt", true)){
-      auto timeout = request->getParam("tt", true)->value().toInt();
-      config->setTcpTimeout(timeout);
-      dbgln("[webserver] saved timeout");
+      auto tcpTimeout = request->getParam("tt", true)->value().toInt();
+      config->setTcpTimeout(tcpTimeout);
+      dbgln("[webserver] saved tcp timeout");
     }
     if (request->hasParam("mb", true)){
       auto baud = request->getParam("mb", true)->value().toInt();
@@ -242,6 +250,11 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
       auto rts = request->getParam("mr", true)->value().toInt();
       config->setModbusRtsPin(rts);
       dbgln("[webserver] saved modbus rts pin");
+    }
+    if (request->hasParam("rt", true)){
+      auto rtuTimeout = request->getParam("rt", true)->value().toInt();
+      config->setRtuTimeout(rtuTimeout);
+      dbgln("[webserver] saved rtu timeout");
     }
     if (request->hasParam("sb", true)){
       auto baud = request->getParam("sb", true)->value().toInt();
