@@ -2,9 +2,15 @@
     #define CONFIG_H
     #include <Arduino.h>
     #include <Preferences.h>
-    #define debugSerial Serial
-    #define modbusSerial Serial2
-    #define DEBUG
+    #if !defined(DEBUG_SERIAL)
+        #define DEBUG_SERIAL Serial
+    #endif
+    #if !defined(MODBUS_SERIAL)
+        #define MODBUS_SERIAL Serial2
+    #endif
+    #if !defined(MODBUS_MAX_ADDRESS)
+        #define MODBUS_MAX_ADDRESS 247
+    #endif
 
     class Config{
         private:
@@ -14,6 +20,7 @@
             unsigned long _modbusBaudRate;
             uint32_t _modbusConfig;
             int8_t _modbusRtsPin;
+            uint32_t _rtuTimeout;
             unsigned long _serialBaudRate;
             uint32_t _serialConfig;
         public:
@@ -34,6 +41,8 @@
             void setModbusStopBits(uint8_t value);
             int8_t getModbusRtsPin();
             void setModbusRtsPin(int8_t value);
+            uint32_t getRtuTimeout();
+            void setRtuTimeout(uint32_t value);
             uint32_t getSerialConfig();
             unsigned long getSerialBaudRate();
             void setSerialBaudRate(unsigned long value);
@@ -44,11 +53,4 @@
             uint8_t getSerialStopBits();
             void setSerialStopBits(uint8_t value);
     };
-    #ifdef DEBUG
-    #define dbg(x...) debugSerial.print(x);
-    #define dbgln(x...) debugSerial.println(x);
-    #else /* DEBUG */
-    #define dbg(x...) ;
-    #define dbgln(x...) ;
-    #endif /* DEBUG */
 #endif /* CONFIG_H */

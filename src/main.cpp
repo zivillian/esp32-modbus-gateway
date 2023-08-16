@@ -1,10 +1,15 @@
+#if defined(ETHERNET)
+#include <ETH.h>
+#include "ModbusBridgeEthernet.h"
+#else
 #include <WiFi.h>
-#include <AsyncTCP.h>
 #include <WiFiManager.h>
+#include <ModbusBridgeWiFi.h>
+#endif
+#include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <Preferences.h>
 #include <Logging.h>
-#include <ModbusBridgeWiFi.h>
 #include <ModbusClientRTU.h>
 #include "config.h"
 #include "pages.h"
@@ -14,53 +19,89 @@ Config config;
 Preferences prefs;
 ModbusClientRTU *MBclient;
 ModbusBridgeWiFi MBbridge;
+#if !defined(ETHERNET)
 WiFiManager wm;
+#endif
 
-void setup() {
-  debugSerial.begin(115200);
-  dbgln();
-  dbgln("[config] load")
-  prefs.begin("modbusRtuGw");
-  config.begin(&prefs);
-  debugSerial.end();
-  debugSerial.begin(config.getSerialBaudRate(), config.getSerialConfig());
-  dbgln("[wifi] start");
+#if defined(ETHERNET)
+void setupNetwork()
+{
+  LOG_I("[Ethernet] Setup Network\n");
+  ETH.begin();
+  LOG_I("[Ethernet] Done\n");
+}
+#else
+void setupNetwork()
+{
+  LOG_I("[Wifi] Setup Network\n");
+
   WiFi.mode(WIFI_STA);
   wm.setClass("invert");
   auto reboot = false;
-  wm.setAPCallback([&reboot](WiFiManager *wifiManager){reboot = true;});
+  wm.setAPCallback([&reboot](WiFiManager *wifiManager){ reboot = true; });
   wm.autoConnect();
-  if (reboot){
+  if (reboot)
+  {
     ESP.restart();
   }
-  dbgln("[wifi] finished");
-  dbgln("[modbus] start");
 
+  LOG_I("[Wifi] Done\n");
+}
+#endif
+
+void setup()
+{
+#if !defined(DEBUG)
   MBUlogLvl = LOG_LEVEL_WARNING;
-  RTUutils::prepareHardwareSerial(modbusSerial);
+#endif
+
+  LOGDEVICE = &(DEBUG_SERIAL);
+
+  DEBUG_SERIAL.begin(115200);
+
+  LOG_I("[Config] Loading\n");
+
+  // Load preferences
+  prefs.begin("modbusRtuGw");
+  config.begin(&prefs);
+
+  // Reset Debug Serial based on the configuration
+  DEBUG_SERIAL.flush();
+  DEBUG_SERIAL.begin(config.getSerialBaudRate(), config.getSerialConfig());
+
+  LOG_I("[Config] Done\n");
+
+  setupNetwork();
+
+  LOG_I("[Modbus] Setup\n");
+
+  RTUutils::prepareHardwareSerial(MODBUS_SERIAL);
 #if defined(RX_PIN) && defined(TX_PIN)
-  // use rx and tx-pins if defined in platformio.ini
-  modbusSerial.begin(config.getModbusBaudRate(), config.getModbusConfig(), RX_PIN, TX_PIN );
-  dbgln("Use user defined RX/TX pins");
+  LOG_I("[Modbus] Using provided RX(%d)/TX(%d) pins\n", RX_PIN, TX_PIN);
+  MODBUS_SERIAL.begin(config.getModbusBaudRate(), config.getModbusConfig(), RX_PIN, TX_PIN);
 #else
-  // otherwise use default pins for hardware-serial2
-  modbusSerial.begin(config.getModbusBaudRate(), config.getModbusConfig());
+  LOG_I("[Modbus] Using default RX/TX pins\n");
+  MODBUS_SERIAL.begin(config.getModbusBaudRate(), config.getModbusConfig());
 #endif
 
   MBclient = new ModbusClientRTU(config.getModbusRtsPin());
-  MBclient->setTimeout(1000);
-  MBclient->begin(modbusSerial, 1);
-  for (uint8_t i = 1; i < 248; i++)
+  MBclient->setTimeout(config.getRtuTimeout());
+  MBclient->begin(MODBUS_SERIAL, 1);
+  for (uint8_t i = 1; i <= MODBUS_MAX_ADDRESS; i++)
   {
     MBbridge.attachServer(i, i, ANY_FUNCTION_CODE, MBclient);
-  }  
+  }
   MBbridge.start(config.getTcpPort(), 10, config.getTcpTimeout());
-  dbgln("[modbus] finished");
+  LOG_I("[Modbus] Done\n");
+
+  LOG_I("[WebServer] Setup\n");
+#if defined(ETHERNET)
+  setupPages(&webServer, MBclient, &MBbridge, &config);
+#else
   setupPages(&webServer, MBclient, &MBbridge, &config, &wm);
+#endif
   webServer.begin();
-  dbgln("[setup] finished");
+  LOG_I("[WebServer] Done\n");
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-}
+void loop() {}
