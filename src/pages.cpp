@@ -236,62 +236,62 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     if (request->hasParam("tp", true)){
       auto port = request->getParam("tp", true)->value().toInt();
       config->setTcpPort(port);
-      LOG_D("[Webserver] saved port\n");
+      LOG_D("[Webserver] Saved TCP Port: %ld\n", port);
     }
     if (request->hasParam("tt", true)){
       auto tcpTimeout = request->getParam("tt", true)->value().toInt();
       config->setTcpTimeout(tcpTimeout);
-      LOG_D("[Webserver] saved tcp timeout\n");
+      LOG_D("[Webserver] Saved TCP Timeout: %ld\n", tcpTimeout);
     }
     if (request->hasParam("mb", true)){
       auto baud = request->getParam("mb", true)->value().toInt();
       config->setModbusBaudRate(baud);
-      LOG_D("[Webserver] saved modbus baud rate\n");
+      LOG_D("[Webserver] Saved Modbus Baud rate: %ld\n", baud);
     }
     if (request->hasParam("md", true)){
       auto data = request->getParam("md", true)->value().toInt();
       config->setModbusDataBits(data);
-      LOG_D("[Webserver] saved modbus data bits\n");
+      LOG_D("[Webserver] Saved Modbus Data bits: %ld\n", data);
     }
     if (request->hasParam("mp", true)){
       auto parity = request->getParam("mp", true)->value().toInt();
       config->setModbusParity(parity);
-      LOG_D("[Webserver] saved modbus parity\n");
+      LOG_D("[Webserver] Saved Modbus Parity: %ld\n", parity);
     }
     if (request->hasParam("ms", true)){
       auto stop = request->getParam("ms", true)->value().toInt();
       config->setModbusStopBits(stop);
-      LOG_D("[Webserver] saved modbus stop bits\n");
+      LOG_D("[Webserver] Saved Modbus Stop bits: %ld\n", stop);
     }
     if (request->hasParam("mr", true)){
       auto rts = request->getParam("mr", true)->value().toInt();
       config->setModbusRtsPin(rts);
-      LOG_D("[Webserver] saved modbus rts pin\n");
+      LOG_D("[Webserver] Saved Modbus RTS pin: %ld\n", rts);
     }
     if (request->hasParam("rt", true)){
       auto rtuTimeout = request->getParam("rt", true)->value().toInt();
       config->setRtuTimeout(rtuTimeout);
-      LOG_D("[Webserver] saved rtu timeout\n");
+      LOG_D("[Webserver] Saved RTU Timeout: %ld\n", rtuTimeout);
     }
     if (request->hasParam("sb", true)){
       auto baud = request->getParam("sb", true)->value().toInt();
       config->setSerialBaudRate(baud);
-      LOG_D("[Webserver] saved serial baud rate\n");
+      LOG_D("[Webserver] Saved Debug Serial Baud rate: %ld\n", baud);
     }
     if (request->hasParam("sd", true)){
       auto data = request->getParam("sd", true)->value().toInt();
       config->setSerialDataBits(data);
-      LOG_D("[Webserver] saved serial data bits\n");
+      LOG_D("[Webserver] Saved Debug Serial Data bits: %ld\n", data);
     }
     if (request->hasParam("sp", true)){
       auto parity = request->getParam("sp", true)->value().toInt();
       config->setSerialParity(parity);
-      LOG_D("[Webserver] saved serial parity\n");
+      LOG_D("[Webserver] Saved Debug Serial Parity: %ld\n", parity);
     }
     if (request->hasParam("ss", true)){
       auto stop = request->getParam("ss", true)->value().toInt();
       config->setSerialStopBits(stop);
-      LOG_D("[Webserver] saved serial stop bits\n");
+      LOG_D("[Webserver] Saved Debug Serial Stop bits: %ld\n", stop);
     }
     request->redirect("/");    
   });
