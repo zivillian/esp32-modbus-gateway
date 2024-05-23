@@ -16,6 +16,7 @@
             int8_t _modbusRtsPin;
             unsigned long _serialBaudRate;
             uint32_t _serialConfig;
+            String _webPassword;
         public:
             Config();
             void begin(Preferences *prefs);
@@ -43,6 +44,8 @@
             void setSerialParity(uint8_t value);
             uint8_t getSerialStopBits();
             void setSerialStopBits(uint8_t value);
+            String getWebPassword();
+            void setWebPassword(String value);
     };
     #ifdef DEBUG
     #define dbg(x...) debugSerial.print(x);
