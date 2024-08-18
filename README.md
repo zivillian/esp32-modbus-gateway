@@ -17,6 +17,19 @@ It work's for me, but there's room for improvement. If you have an idea please o
 ![Home](doc/img/esp32-xy017.png)
 
 
+## Fork Information
+
+This fork has the following changes:
+
+ * Added support for Ethernet boards(In my case WT32-ETH01)
+ * Replaced debug function with functions from eModbus
+ * Cosmetic fixes for the WebUI
+ * Added support for different Serials objects
+ * Added support for less than 247 Modbus addresses
+ * Added support for a custom RTU timeout
+ * Better debug messages
+
+
 ## Screenshots
 
 ### Home
