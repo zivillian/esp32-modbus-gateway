@@ -9,6 +9,7 @@ Config::Config()
     ,_modbusRtsPin(-1)
     ,_serialBaudRate(115200)
     ,_serialConfig(SERIAL_8N1)
+    ,_webPassword("")
 {}
 
 void Config::begin(Preferences *prefs)
@@ -21,6 +22,7 @@ void Config::begin(Preferences *prefs)
     _modbusRtsPin = _prefs->getChar("modbusRtsPin", _modbusRtsPin);
     _serialBaudRate = _prefs->getULong("serialBaudRate", _serialBaudRate);
     _serialConfig = _prefs->getULong("serialConfig", _serialConfig);
+    _webPassword = _prefs->getString("webPassword", _webPassword);
 }
 
 uint16_t Config::getTcpPort(){
@@ -153,4 +155,16 @@ void Config::setSerialStopBits(uint8_t value){
     if (stopbits == value) return;
     _serialConfig = (_serialConfig & 0xffffffcf) | value;
     _prefs->putULong("serialConfig", _serialConfig);
+}
+
+
+String Config::getWebPassword(){
+    return _webPassword;
+}
+
+void Config::setWebPassword(String value){
+    auto webpass = getWebPassword();
+    if (webpass == value) return;
+    _webPassword = value;
+    _prefs->putString("webPassword", _webPassword);
 }

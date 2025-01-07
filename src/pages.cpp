@@ -1,8 +1,16 @@
 #include "pages.h"
 #define ETAG "\"" __DATE__ "" __TIME__ "\""
+#define ADMIN_WEB_PASS  \
+        if ((!config->getWebPassword().equals("")) && (!request->authenticate("admin", config->getWebPassword().c_str()))) \
+            return request->requestAuthentication();
+#define WEB_PASS_PLACEHOLDER "****"
+
 
 void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *bridge, Config *config, WiFiManager *wm){
-  server->on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+  server->on("/", HTTP_GET, [config](AsyncWebServerRequest *request){
+    
+    ADMIN_WEB_PASS;
+
     dbgln("[webserver] GET /");
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Main");
@@ -15,7 +23,10 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendResponseTrailer(response);
     request->send(response);
   });
-  server->on("/status", HTTP_GET, [rtu, bridge](AsyncWebServerRequest *request){
+  server->on("/status", HTTP_GET, [rtu, bridge, config](AsyncWebServerRequest *request){
+    
+    ADMIN_WEB_PASS;
+
     dbgln("[webserver] GET /status");
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Status");
@@ -42,7 +53,10 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendResponseTrailer(response);
     request->send(response);
   });
-  server->on("/reboot", HTTP_GET, [](AsyncWebServerRequest *request){
+  server->on("/reboot", HTTP_GET, [config](AsyncWebServerRequest *request){
+    
+    ADMIN_WEB_PASS;
+
     dbgln("[webserver] GET /reboot");
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Really?");
@@ -53,7 +67,10 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendResponseTrailer(response);
     request->send(response);
   });
-  server->on("/reboot", HTTP_POST, [](AsyncWebServerRequest *request){
+  server->on("/reboot", HTTP_POST, [config](AsyncWebServerRequest *request){
+    
+    ADMIN_WEB_PASS;
+
     dbgln("[webserver] POST /reboot");
     request->redirect("/");
     dbgln("[webserver] rebooting...")
@@ -61,6 +78,9 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     dbgln("[webserver] rebooted...")
   });
   server->on("/config", HTTP_GET, [config](AsyncWebServerRequest *request){
+    
+    ADMIN_WEB_PASS;
+
     dbgln("[webserver] GET /config");
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Modbus TCP");
@@ -192,6 +212,19 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
           "</td>"
         "</tr>"
         "</table>");
+    
+    response->print(        "<h3>Other</h3>"
+        "<table>"
+        "<tr>"
+          "<td>"
+            "<label for=\"wp\">Web password</label>"
+          "</td>"
+          "<td>");
+    response->printf("<input type=\"password\" min=\"0\" id=\"wp\" name=\"wp\" value=\"%s\">", WEB_PASS_PLACEHOLDER); // we're not returning configured password to user instead we're sending placeholder
+    response->print("</td>"
+        "</tr>"
+        "</table>");
+
     response->print("<button class=\"r\">Save</button>"
       "</form>"
       "<p></p>");
@@ -207,6 +240,9 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     request->send(response);
   });
   server->on("/config", HTTP_POST, [config](AsyncWebServerRequest *request){
+    
+    ADMIN_WEB_PASS;
+
     dbgln("[webserver] POST /config");
     if (request->hasParam("tp", true)){
       auto port = request->getParam("tp", true)->value().toInt();
@@ -263,9 +299,21 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
       config->setSerialStopBits(stop);
       dbgln("[webserver] saved serial stop bits");
     }
+    if (request->hasParam("wp", true)){
+      String wp = request->getParam("wp", true)->value();
+      if (!wp.equals(WEB_PASS_PLACEHOLDER)) { // if we get default value prefilled in the wp input we're not changing current one
+        config->setWebPassword(wp);
+        dbgln("[webserver] saved web password");
+      } else {
+        dbgln("[webserver] web password not changed");
+      }
+    }
     request->redirect("/");    
   });
-  server->on("/debug", HTTP_GET, [](AsyncWebServerRequest *request){
+  server->on("/debug", HTTP_GET, [config](AsyncWebServerRequest *request){
+    
+    ADMIN_WEB_PASS;
+
     dbgln("[webserver] GET /debug");
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Debug");
@@ -274,7 +322,10 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendResponseTrailer(response);
     request->send(response);
   });
-  server->on("/debug", HTTP_POST, [rtu](AsyncWebServerRequest *request){
+  server->on("/debug", HTTP_POST, [rtu, config](AsyncWebServerRequest *request){
+    
+    ADMIN_WEB_PASS;
+
     dbgln("[webserver] POST /debug");
     String slaveId = "1";
     if (request->hasParam("slave", true)){
@@ -322,7 +373,10 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendResponseTrailer(response);
     request->send(response);
   });
-  server->on("/update", HTTP_GET, [](AsyncWebServerRequest *request){
+  server->on("/update", HTTP_GET, [config](AsyncWebServerRequest *request){
+    
+    ADMIN_WEB_PASS;
+
     dbgln("[webserver] GET /update");
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Firmware Update");
@@ -336,7 +390,10 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendResponseTrailer(response);
     request->send(response);
   });
-  server->on("/update", HTTP_POST, [](AsyncWebServerRequest *request){
+  server->on("/update", HTTP_POST, [config](AsyncWebServerRequest *request){
+    
+    ADMIN_WEB_PASS;
+
     request->onDisconnect([](){
       ESP.restart();
     });
@@ -356,6 +413,9 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
       request->send(response);
     }
   }, [&](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
+    
+    ADMIN_WEB_PASS;
+
     dbg("[webserver] OTA progress ");dbgln(index);
     if (!index) {
       //TODO add MD5 Checksum and Update.setMD5
@@ -380,7 +440,10 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
       return;
     }
   });
-  server->on("/wifi", HTTP_GET, [](AsyncWebServerRequest *request){
+  server->on("/wifi", HTTP_GET, [config](AsyncWebServerRequest *request){
+    
+    ADMIN_WEB_PASS;
+
     dbgln("[webserver] GET /wifi");
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "WiFi reset");
@@ -396,7 +459,10 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendResponseTrailer(response);
     request->send(response);
   });
-  server->on("/wifi", HTTP_POST, [wm](AsyncWebServerRequest *request){
+  server->on("/wifi", HTTP_POST, [wm, config](AsyncWebServerRequest *request){
+    
+    ADMIN_WEB_PASS;
+
     dbgln("[webserver] POST /wifi");
     request->redirect("/");
     wm->erase();
@@ -409,7 +475,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     dbgln("[webserver] GET /favicon.ico");
     request->send(204);//TODO add favicon
   });
-  server->on("/style.css", [](AsyncWebServerRequest *request){
+  server->on("/style.css", [config](AsyncWebServerRequest *request){
     if (request->hasHeader("If-None-Match")){
       auto header = request->getHeader("If-None-Match");
       if (header->value() == String(ETAG)){
@@ -444,7 +510,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     response->addHeader("ETag", ETAG);
     request->send(response);
   });
-  server->onNotFound([](AsyncWebServerRequest *request){
+  server->onNotFound([config](AsyncWebServerRequest *request){
     dbg("[webserver] request to ");dbg(request->url());dbgln(" not found");
     request->send(404, "text/plain", "404");
   });
