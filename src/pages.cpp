@@ -476,9 +476,6 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     request->send(204);//TODO add favicon
   });
   server->on("/style.css", [config](AsyncWebServerRequest *request){
-    
-    ADMIN_WEB_PASS;
-
     if (request->hasHeader("If-None-Match")){
       auto header = request->getHeader("If-None-Match");
       if (header->value() == String(ETAG)){
@@ -514,9 +511,6 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     request->send(response);
   });
   server->onNotFound([config](AsyncWebServerRequest *request){
-    
-    ADMIN_WEB_PASS;
-
     dbg("[webserver] request to ");dbg(request->url());dbgln(" not found");
     request->send(404, "text/plain", "404");
   });
